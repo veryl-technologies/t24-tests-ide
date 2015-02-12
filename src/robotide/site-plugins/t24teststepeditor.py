@@ -129,7 +129,10 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
     def OnTreeSelection(self, message):
         # self._editor.store_position()
         if self.is_focused():
-            self._editor.setAction(message.node._text)
+            if message.node._data.item.__class__.__name__ is 'TestCase':
+                self._editor.setTestCase(message.node)
+            else:
+                self._editor.hide()
             #next_datafile_controller = message.item and message.item.datafile_controller
             #if self._editor.dirty:
             #    if not self._apply_txt_changes_to_model():
@@ -250,22 +253,36 @@ class T24TestStepEditorPanelBase ( wx.Panel ):
 	def OnTransactionChanged( self, event ):
 		event.Skip()
 
-	def setAction(self, action):
-		self.m_textCtrl1.SetValue(action)
+	def setTestCase(self, treeNode):
+		self.treeNode=treeNode
+		action = treeNode._text
+		if action.startswith('(') and action.index(') ') > 1:
+			self.m_choice1.SetSelection(self.m_choice1.FindString(action[1:action.index(') ')]))
+
+			self.m_textCtrl1.SetValue(action[action.index(') ')+2:])
 
 class T24TestStepEditorPanel(T24TestStepEditorPanelBase):
 
-    def __init__(self, parent, title):
-        T24TestStepEditorPanelBase.__init__(self, parent)
-        #self._parent.add_tab(self, title, allow_closing=False)
+	def __init__(self, parent, title):
+		T24TestStepEditorPanelBase.__init__(self, parent)
+		#self._parent.add_tab(self, title, allow_closing=False)
 
+	def getTestStepName(self):
+		return '(' + self.m_choice1.GetString(self.m_choice1.GetSelection()) + ') ' + self.m_textCtrl1.GetValue()
 
-    # T24TestStepEditorPanelBase event handler overrides
+	# T24TestStepEditorPanelBase event handler overrides
 	def OnActionChanged( self, event ):
-		event.Skip()
+		if self.treeNode is not None:
+			text = self.getTestStepName()
+			self.treeNode.SetFocus()
+			self.treeNode.SetItemText(text)
+			self.m_choice1.SetFocus()
+
+
 
 	def OnTransactionChanged( self, event ):
-		event.Skip()
+		if self.treeNode is not None:
+			self.treeNode._text=self.getTestStepName()
 
 
 
