@@ -1,16 +1,7 @@
-#  Copyright 2008-2012 Nokia Siemens Networks Oyj
+# Copyright Zhelev 2015
 #
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
+
 
 from time import time
 from robotide.context.platform import IS_WINDOWS, IS_MAC
@@ -38,13 +29,14 @@ import wx
 import wx.xrc
 import wx.grid
 
-
 try:
     from . import robotframeworklexer
 except Exception as e:
     robotframeworklexer = None
 
 # from ..editor.popupwindow import HtmlDialog
+
+
 
 class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
     title = 'T24 Text Edit'
@@ -57,6 +49,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
     def _editor(self):
         if not self._editor_component:
             self._editor_component = T24TestStepEditorPanel(self.notebook, self.title)
+            self._editor_component.setTestCase(None, None)
             self.add_tab(self._editor_component, self. title, allow_closing=False)
             self._refresh_timer = wx.Timer(self._editor_component)
             self._editor_component.Bind(wx.EVT_TIMER, self._on_timer)
@@ -130,8 +123,9 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
         # self._editor.store_position()
         if self.is_focused():
             if message.node._data.item.__class__.__name__ is 'TestCase':
-                self._editor.setTestCase(message.node)
+                self._editor.setTestCase(message.node, self.tree)
             else:
+                self._editor.setTestCase(None,None)
                 self._editor.hide()
             #next_datafile_controller = message.item and message.item.datafile_controller
             #if self._editor.dirty:
@@ -173,116 +167,195 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
 
 
 
-
-
-
+""" ========================================================================= """
 class T24TestStepEditorPanelBase ( wx.Panel ):
 
-	def __init__( self, parent ):
-		wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 614,430 ), style = wx.TAB_TRAVERSAL )
+    def __init__( self, parent ):
+        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 704,428 ), style = wx.TAB_TRAVERSAL )
 
-        #self.parent=parent
+        bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-		bSizer1 = wx.BoxSizer( wx.VERTICAL )
+        fgSizer3 = wx.FlexGridSizer( 0, 2, 0, 0 )
+        fgSizer3.SetFlexibleDirection( wx.BOTH )
+        fgSizer3.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Action" ), wx.HORIZONTAL )
+        self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Test Case Name", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE )
+        self.m_staticText1.Wrap( -1 )
+        self.m_staticText1.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 93, 92, False, wx.EmptyString ) )
+        self.m_staticText1.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHT ) )
 
-		m_choice1Choices = [ u"M", u"E(nq)", u"I", u"A", u"S", u"V" ]
-		self.m_choice1 = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 60,-1 ), m_choice1Choices, 0 )
-		self.m_choice1.SetSelection( 0 )
-		sbSizer3.Add( self.m_choice1, 0, wx.ALL, 5 )
+        fgSizer3.Add( self.m_staticText1, 0, wx.ALL, 8 )
 
-		self.m_textCtrl1 = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 2000,-1 ), 0 )
+        self.m_txtTestCaseName = wx.TextCtrl( self, wx.ID_ANY, u"Customer individual", wx.DefaultPosition, wx.Size( 500,-1 ), 0 )
+        self.m_txtTestCaseName.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 93, 92, False, wx.EmptyString ) )
+        self.m_txtTestCaseName.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_CAPTIONTEXT ) )
 
-		sbSizer3.Add( self.m_textCtrl1, 0, wx.ALL, 5 )
-
-
-		bSizer1.Add( sbSizer3, 1, wx.EXPAND, 5 )
-
-		sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Parameters" ), wx.HORIZONTAL )
-
-		self.m_grid1 = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 2000,1000 ), 0 )
-
-		# Grid
-		self.m_grid1.CreateGrid( 20, 3 )
-		self.m_grid1.EnableEditing( True )
-		self.m_grid1.EnableGridLines( True )
-		self.m_grid1.SetGridLineColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_ACTIVEBORDER ) )
-		self.m_grid1.EnableDragGridSize( False )
-		self.m_grid1.SetMargins( 0, 0 )
-
-		# Columns
-		self.m_grid1.SetColSize( 0, 116 )
-		self.m_grid1.SetColSize( 1, 158 )
-		self.m_grid1.SetColSize( 2, 354 )
-		self.m_grid1.AutoSizeColumns()
-		self.m_grid1.EnableDragColMove( False )
-		self.m_grid1.EnableDragColSize( True )
-		self.m_grid1.SetColLabelSize( 30 )
-		self.m_grid1.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
-
-		# Rows
-		self.m_grid1.EnableDragRowSize( True )
-		self.m_grid1.SetRowLabelSize( 80 )
-		self.m_grid1.SetRowLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
-
-		# Label Appearance
-
-		# Cell Defaults
-		self.m_grid1.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		sbSizer2.Add( self.m_grid1, 0, wx.ALL, 5 )
+        fgSizer3.Add( self.m_txtTestCaseName, 0, wx.ALL, 5 )
 
 
-		bSizer1.Add( sbSizer2, 1, wx.EXPAND, 5 )
+        bSizer1.Add( fgSizer3, 0, wx.EXPAND, 5 )
+
+        fgSizer1 = wx.FlexGridSizer( 0, 2, 0, 0 )
+        fgSizer1.SetFlexibleDirection( wx.BOTH )
+        fgSizer1.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_NONE )
+
+        self.m_staticline1 = wx.StaticLine( self, wx.ID_ANY, wx.Point( -1,-1 ), wx.Size( 2000,-1 ), wx.LI_HORIZONTAL )
+        fgSizer1.Add( self.m_staticline1, 0, wx.EXPAND |wx.ALL, 5 )
 
 
-		self.SetSizer( bSizer1 )
-		self.Layout()
+        bSizer1.Add( fgSizer1, 0, 0, 5 )
 
-		# Connect Events
-		self.m_choice1.Bind( wx.EVT_CHOICE, self.OnActionChanged )
-		self.m_textCtrl1.Bind( wx.EVT_TEXT, self.OnTransactionChanged )
+        fgSizer2 = wx.FlexGridSizer( 0, 2, 0, 0 )
+        fgSizer2.SetFlexibleDirection( wx.BOTH )
+        fgSizer2.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-	def __del__( self ):
-		pass
+        sbSizer8 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Test Steps" ), wx.VERTICAL )
 
-	# Virtual event handlers, overide them in your derived class
-	def OnActionChanged( self, event ):
-		event.Skip()
+        bSizer2 = wx.BoxSizer( wx.VERTICAL )
 
-	def OnTransactionChanged( self, event ):
-		event.Skip()
+        self.m_lsTestSteps = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,280 ), wx.LC_LIST )
+        bSizer2.Add( self.m_lsTestSteps, 1, wx.ALL|wx.EXPAND, 5 )
 
-	def setTestCase(self, treeNode):
-		self.treeNode=treeNode
-		action = treeNode._text
-		if action.startswith('(') and action.index(') ') > 1:
-			self.m_choice1.SetSelection(self.m_choice1.FindString(action[1:action.index(') ')]))
 
-			self.m_textCtrl1.SetValue(action[action.index(') ')+2:])
+        sbSizer8.Add( bSizer2, 1, wx.EXPAND, 5 )
 
+        bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_hyperlinkDeleteTestStep = wx.HyperlinkCtrl( self, wx.ID_ANY, u"Delete", wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
+        bSizer3.Add( self.m_hyperlinkDeleteTestStep, 0, wx.ALL, 5 )
+
+        self.m_hyperlinkNewTestStep = wx.HyperlinkCtrl( self, wx.ID_ANY, u"New", wx.EmptyString, wx.DefaultPosition, wx.Size( -1,24 ), wx.HL_DEFAULT_STYLE )
+        bSizer3.Add( self.m_hyperlinkNewTestStep, 0, wx.ALL, 5 )
+
+
+        sbSizer8.Add( bSizer3, 1, wx.TOP|wx.BOTTOM, 5 )
+
+
+        fgSizer2.Add( sbSizer8, 1, wx.EXPAND|wx.RIGHT, 5 )
+
+        sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Test Step Details" ), wx.HORIZONTAL )
+
+        bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
+
+        m_choiceTestStepActionChoices = [ u"M", u"E(nq)", u"I", u"A", u"S", u"V" ]
+        self.m_choiceTestStepAction = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 60,-1 ), m_choiceTestStepActionChoices, 0 )
+        self.m_choiceTestStepAction.SetSelection( 0 )
+        bSizer4.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
+
+        self.m_txtTestStepTransaction = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 380,-1 ), 0 )
+        bSizer4.Add( self.m_txtTestStepTransaction, 1, wx.ALL, 5 )
+
+
+        sbSizer3.Add( bSizer4, 1, 0, 5 )
+
+        bSizer5 = wx.BoxSizer( wx.VERTICAL )
+
+        self.m_panel1 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        bSizer5.Add( self.m_panel1, 1, wx.ALL|wx.EXPAND, 5 )
+
+
+        sbSizer3.Add( bSizer5, 1, wx.EXPAND, 5 )
+
+
+        fgSizer2.Add( sbSizer3, 1, wx.LEFT|wx.EXPAND, 5 )
+
+
+        bSizer1.Add( fgSizer2, 1, wx.EXPAND, 5 )
+
+
+        self.SetSizer( bSizer1 )
+        self.Layout()
+
+        # Connect Events
+        self.m_txtTestCaseName.Bind( wx.EVT_TEXT, self.OnTestCaseNameChanged )
+        self.m_lsTestSteps.Bind( wx.EVT_LIST_ITEM_SELECTED, self.OnSelectedTestStepChanged )
+        self.m_hyperlinkDeleteTestStep.Bind( wx.EVT_HYPERLINK, self.OnDeleteSelectedTestStep )
+        self.m_hyperlinkNewTestStep.Bind( wx.EVT_HYPERLINK, self.OnNewTestStep )
+        self.m_choiceTestStepAction.Bind( wx.EVT_CHOICE, self.OnActionChanged )
+        self.m_txtTestStepTransaction.Bind( wx.EVT_TEXT, self.OnTransactionChanged )
+
+    def __del__( self ):
+        pass
+
+
+    # Virtual event handlers, overide them in your derived class
+    def OnTestCaseNameChanged( self, event ):
+        event.Skip()
+
+    def OnSelectedTestStepChanged( self, event ):
+        event.Skip()
+
+    def OnNewTestStep( self, event ):
+        event.Skip()
+
+    def OnDeleteSelectedTestStep( self, event ):
+        event.Skip()
+
+    def OnActionChanged( self, event ):
+        event.Skip()
+
+    def OnTransactionChanged( self, event ):
+        event.Skip()
+
+""" ========================================================================= """
 class T24TestStepEditorPanel(T24TestStepEditorPanelBase):
 
-	def __init__(self, parent, title):
-		T24TestStepEditorPanelBase.__init__(self, parent)
-		#self._parent.add_tab(self, title, allow_closing=False)
+    _testCaseTreeNode = None
+    _tree = None
 
-	def getTestStepName(self):
-		return '(' + self.m_choice1.GetString(self.m_choice1.GetSelection()) + ') ' + self.m_textCtrl1.GetValue()
+    def __init__(self, parent, title):
+        T24TestStepEditorPanelBase.__init__(self, parent)
+        #self._parent.add_tab(self, title, allow_closing=False)
+        self.m_lsTestSteps.InsertColumn(0, 'Name', wx.LIST_FORMAT_LEFT, 200)
 
-	# T24TestStepEditorPanelBase event handler overrides
-	def OnActionChanged( self, event ):
-		if self.treeNode is not None:
-			text = self.getTestStepName()
-			self.treeNode.SetFocus()
-			self.treeNode.SetItemText(text)
-			self.m_choice1.SetFocus()
+    def setTestCase(self, treeNode, tree):
+        self._testCaseTreeNode = treeNode
+        self._tree = tree
+        # todo - self._testCaseTreeNode._data.item is the test case we should read from it and update it
+        if self._testCaseTreeNode is None:
+            self.Hide()
+        else:
+            self.Show()
+            self.m_txtTestCaseName.SetValue(self._testCaseTreeNode.GetText())
+            self.fillTestStepsList(self._testCaseTreeNode._data.item.steps)
+
+    def fillTestStepsList(self, steps):
+        self.m_lsTestSteps.DeleteAllItems()
+        idx=0
+        if steps is not None:
+            for step in steps:
+                item = wx.ListItem()
+                item.SetText(step.keyword + ' ' + ', '.join(step.args))
+                item.SetId(idx)
+                self.m_lsTestSteps.InsertItem(item)
+                idx+=1
 
 
 
-	def OnTransactionChanged( self, event ):
-		if self.treeNode is not None:
-			self.treeNode._text=self.getTestStepName()
+
+    def getTestStepName(self):
+        return '(' + self.m_choice1.GetString(self.m_choice1.GetSelection()) + ') ' + self.m_textCtrl1.GetValue()
+
+    # T24TestStepEditorPanelBase event handler overrides
+    def OnTestCaseNameChanged( self, event ):
+        if self._testCaseTreeNode is not None:
+            self._testCaseTreeNode.SetText(self.m_txtTestCaseName.GetValue())
+            self._tree.Refresh()
+            # self.testCaseTreeNode.Update() ???
+            # todo - set the new name to the data (testCaseTreeNode.data....)
+
+    def OnActionChanged( self, event ):
+        if self.treeNode is not None:
+            text = self.getTestStepName()
+            self.treeNode.SetFocus()
+            self.treeNode.SetItemText(text)
+            self.m_choice1.SetFocus()
+
+
+
+    def OnTransactionChanged( self, event ):
+        if self.treeNode is not None:
+            self.treeNode._text=self.getTestStepName()
 
 
 
