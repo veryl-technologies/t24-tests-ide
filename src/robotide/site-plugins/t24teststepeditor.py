@@ -24,6 +24,9 @@ from robotide.pluginapi import (Plugin, RideSaving, TreeAwarePluginMixin,
 from robotide.widgets.text import TextField
 from robotide.widgets.label import Label
 
+from robotide.t24api.T24TestStep import T24TestStep
+from robotide.t24api.T24AuthorizeTestStep import T24AuthorizeTestStep
+from robotide.t24api.T24InputTestStep import T24InputTestStep
 
 import wx
 import wx.xrc
@@ -49,10 +52,10 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
     def _editor(self):
         if not self._editor_component:
             self._editor_component = T24TestStepEditorPanel(self.notebook, self.title)
-            self._editor_component.setTestCase(None, None)
             self.add_tab(self._editor_component, self. title, allow_closing=False)
             self._refresh_timer = wx.Timer(self._editor_component)
             self._editor_component.Bind(wx.EVT_TIMER, self._on_timer)
+            self._editor_component.setTestCase(None, None)
         return self._editor_component
 
     def enable(self):
@@ -171,7 +174,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
 class T24TestStepEditorPanelBase ( wx.Panel ):
 
     def __init__( self, parent ):
-        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 704,428 ), style = wx.TAB_TRAVERSAL )
+        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 708,555 ), style = wx.TAB_TRAVERSAL )
 
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
@@ -213,7 +216,7 @@ class T24TestStepEditorPanelBase ( wx.Panel ):
 
         bSizer2 = wx.BoxSizer( wx.VERTICAL )
 
-        self.m_lsTestSteps = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,280 ), wx.LC_LIST )
+        self.m_lsTestSteps = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 240,940 ), wx.LC_LIST )
         bSizer2.Add( self.m_lsTestSteps, 1, wx.ALL|wx.EXPAND, 5 )
 
 
@@ -224,11 +227,11 @@ class T24TestStepEditorPanelBase ( wx.Panel ):
         self.m_hyperlinkDeleteTestStep = wx.HyperlinkCtrl( self, wx.ID_ANY, u"Delete", wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
         bSizer3.Add( self.m_hyperlinkDeleteTestStep, 0, wx.ALL, 5 )
 
-        self.m_hyperlinkNewTestStep = wx.HyperlinkCtrl( self, wx.ID_ANY, u"New", wx.EmptyString, wx.DefaultPosition, wx.Size( -1,24 ), wx.HL_DEFAULT_STYLE )
+        self.m_hyperlinkNewTestStep = wx.HyperlinkCtrl( self, wx.ID_ANY, u"New", wx.EmptyString, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HL_DEFAULT_STYLE )
         bSizer3.Add( self.m_hyperlinkNewTestStep, 0, wx.ALL, 5 )
 
 
-        sbSizer8.Add( bSizer3, 1, wx.TOP|wx.BOTTOM, 5 )
+        sbSizer8.Add( bSizer3, 0, wx.TOP|wx.BOTTOM, 5 )
 
 
         fgSizer2.Add( sbSizer8, 1, wx.EXPAND|wx.RIGHT, 5 )
@@ -248,13 +251,13 @@ class T24TestStepEditorPanelBase ( wx.Panel ):
 
         sbSizer3.Add( bSizer4, 1, 0, 5 )
 
-        bSizer5 = wx.BoxSizer( wx.VERTICAL )
+        self.m_sizerTestStepDetails = wx.BoxSizer( wx.VERTICAL )
 
-        self.m_panel1 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        bSizer5.Add( self.m_panel1, 1, wx.ALL|wx.EXPAND, 5 )
+        self.m_panelTestStepContainer = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.m_sizerTestStepDetails.Add( self.m_panelTestStepContainer, 1, wx.ALL|wx.EXPAND, 5 )
 
 
-        sbSizer3.Add( bSizer5, 1, wx.EXPAND, 5 )
+        sbSizer3.Add( self.m_sizerTestStepDetails, 1, wx.EXPAND, 5 )
 
 
         fgSizer2.Add( sbSizer3, 1, wx.LEFT|wx.EXPAND, 5 )
@@ -302,6 +305,7 @@ class T24TestStepEditorPanel(T24TestStepEditorPanelBase):
 
     _testCaseTreeNode = None
     _tree = None
+    _currentTestStep = None
 
     def __init__(self, parent, title):
         T24TestStepEditorPanelBase.__init__(self, parent)
@@ -330,13 +334,33 @@ class T24TestStepEditorPanel(T24TestStepEditorPanelBase):
                 self.m_lsTestSteps.InsertItem(item)
                 idx+=1
 
+    def setTestStep(self, stepDetails):
+        self._currentTestStep = T24TestStep(stepDetails)
+        self.m_choiceTestStepAction.SetSelection(self.m_choiceTestStepAction.FindString(self._currentTestStep.Action))
+        self.m_txtTestStepTransaction.SetValue(self._currentTestStep.AppVersion)
+        self.ShowTestStepData()
 
+    def ShowTestStepData(self):
+        if self._currentTestStep is None:
+            return
 
+        if not not self.m_sizerTestStepDetails.Children:
+            self.m_sizerTestStepDetails.Remove(0)
 
-    def getTestStepName(self):
-        return '(' + self.m_choice1.GetString(self.m_choice1.GetSelection()) + ') ' + self.m_textCtrl1.GetValue()
+        panel = None
+        if self._currentTestStep.Action is 'I':
+            panel = T24InputTestStep(self)# todo check what is wrong with these panels
+        elif self._currentTestStep.Action is 'A':
+            panel = T24AuthorizeTestStep(self)# todo check what is wrong with these panels & why the old one cannot be deleted
+
+        if panel is not None:
+            self.m_sizerTestStepDetails.Add(panel, 1, wx.ALL|wx.EXPAND, 5 )
+
 
     # T24TestStepEditorPanelBase event handler overrides
+    def OnSelectedTestStepChanged(self, event):
+        self.setTestStep(event.Text)
+
     def OnTestCaseNameChanged( self, event ):
         if self._testCaseTreeNode is not None:
             self._testCaseTreeNode.SetText(self.m_txtTestCaseName.GetValue())
@@ -345,17 +369,18 @@ class T24TestStepEditorPanel(T24TestStepEditorPanelBase):
             # todo - set the new name to the data (testCaseTreeNode.data....)
 
     def OnActionChanged( self, event ):
-        if self.treeNode is not None:
-            text = self.getTestStepName()
-            self.treeNode.SetFocus()
-            self.treeNode.SetItemText(text)
-            self.m_choice1.SetFocus()
-
-
+        if self._currentTestStep is not None:
+            self._currentTestStep.Action = self.m_choiceTestStepAction.GetStringSelection()
+            self.ShowTestStepData()
+        #if self.treeNode is not None:
+        #    text = self.getTestStepName()
+        #    self.treeNode.SetItemText(text)
+        pass
 
     def OnTransactionChanged( self, event ):
-        if self.treeNode is not None:
-            self.treeNode._text=self.getTestStepName()
+        #if self.treeNode is not None:
+        #    self.treeNode._text=self.getTestStepName()
+        pass
 
 
 
