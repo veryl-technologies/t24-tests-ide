@@ -714,7 +714,7 @@
                                 <property name="label">Test Step Details</property>
                                 <property name="minimum_size"></property>
                                 <property name="name">sbSizer3</property>
-                                <property name="orient">wxHORIZONTAL</property>
+                                <property name="orient">wxVERTICAL</property>
                                 <property name="permission">none</property>
                                 <event name="OnUpdateUI"></event>
                                 <object class="sizeritem" expanded="1">

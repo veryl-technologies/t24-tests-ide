@@ -174,7 +174,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
 class T24TestStepEditorPanelBase ( wx.Panel ):
 
     def __init__( self, parent ):
-        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 708,555 ), style = wx.TAB_TRAVERSAL )
+        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 832,555 ), style = wx.TAB_TRAVERSAL )
 
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
@@ -236,7 +236,7 @@ class T24TestStepEditorPanelBase ( wx.Panel ):
 
         fgSizer2.Add( sbSizer8, 1, wx.EXPAND|wx.RIGHT, 5 )
 
-        sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Test Step Details" ), wx.HORIZONTAL )
+        sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Test Step Details" ), wx.VERTICAL )
 
         bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
 
@@ -245,19 +245,32 @@ class T24TestStepEditorPanelBase ( wx.Panel ):
         self.m_choiceTestStepAction.SetSelection( 0 )
         bSizer4.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
 
-        self.m_txtTestStepTransaction = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 380,-1 ), 0 )
+        self.m_txtTestStepTransaction = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1,-1 ), 0 )
         bSizer4.Add( self.m_txtTestStepTransaction, 1, wx.ALL, 5 )
 
 
-        sbSizer3.Add( bSizer4, 1, 0, 5 )
+        sbSizer3.Add( bSizer4, 0, 0, 5 )
+
+        fgSizer4 = wx.FlexGridSizer( 0, 2, 0, 0 )
+        fgSizer4.SetFlexibleDirection( wx.BOTH )
+        fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+        self.m_staticline2 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 2000,-1 ), wx.LI_HORIZONTAL )
+        fgSizer4.Add( self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5 )
+
+
+        sbSizer3.Add( fgSizer4, 0, 0, 5 )
 
         self.m_sizerTestStepDetails = wx.BoxSizer( wx.VERTICAL )
 
-        self.m_panelTestStepContainer = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.m_sizerTestStepDetails.Add( self.m_panelTestStepContainer, 1, wx.ALL|wx.EXPAND, 5 )
+        self.m_panelTestStepContainer = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 2000,2000 ), wx.TAB_TRAVERSAL )
+        self.m_panelTestStepContainer.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHT ) )
+        self.m_panelTestStepContainer.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHT ) )
+
+        self.m_sizerTestStepDetails.Add( self.m_panelTestStepContainer, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-        sbSizer3.Add( self.m_sizerTestStepDetails, 1, wx.EXPAND, 5 )
+        sbSizer3.Add( self.m_sizerTestStepDetails, 0, wx.EXPAND, 5 )
 
 
         fgSizer2.Add( sbSizer3, 1, wx.LEFT|wx.EXPAND, 5 )
@@ -345,7 +358,7 @@ class T24TestStepEditorPanel(T24TestStepEditorPanelBase):
             return
 
         if not not self.m_sizerTestStepDetails.Children:
-            self.m_sizerTestStepDetails.Remove(0)
+            self.m_sizerTestStepDetails.DeleteWindows()
 
         panel = None
         if self._currentTestStep.Action is 'I':
@@ -354,8 +367,9 @@ class T24TestStepEditorPanel(T24TestStepEditorPanelBase):
             panel = T24AuthorizeTestStep(self)# todo check what is wrong with these panels & why the old one cannot be deleted
 
         if panel is not None:
+            panel.Size=wx.Size( 2000, 2000 )
             self.m_sizerTestStepDetails.Add(panel, 1, wx.ALL|wx.EXPAND, 5 )
-
+            self.m_sizerTestStepDetails.Layout()
 
     # T24TestStepEditorPanelBase event handler overrides
     def OnSelectedTestStepChanged(self, event):
