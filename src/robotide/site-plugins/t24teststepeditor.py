@@ -51,7 +51,8 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
     def _editor(self):
         if not self._editor_component:
             self._editor_component = T24TestStepsContainer(self.notebook, self.title)
-            self.add_tab(self._editor_component, self. title, allow_closing=False)
+            self.add_tab(self._editor_component, self.title, allow_closing=False)
+            self.show_tab(self.title)
             self._refresh_timer = wx.Timer(self._editor_component)
             self._editor_component.Bind(wx.EVT_TIMER, self._on_timer)
             self._editor_component.setTestCase(None, None)
@@ -200,6 +201,7 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 
     _testCaseTreeNode = None
     _tree = None
+    _testSteps = []
 
     def __init__( self, parent, title ):
         T24TestStepsContainerBase.__init__(self,parent)
@@ -224,8 +226,8 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
         if testSteps is not None:
             for step in testSteps:
                 panel = self.createStepPanel(step)
-                #  panel.Size=wx.Size( 2000, 2000 )
-                self.m_sizerTestStepsContainer.Add(panel, 1, wx.EXPAND |wx.ALL, 5 )
+                if not not panel:
+                    self.m_sizerTestStepsContainer.Add(panel, 1, wx.EXPAND |wx.ALL, 5 )
 
             self.m_scrolledWindow2.SetSizer(self.m_sizerTestStepsContainer)
             self.m_scrolledWindow2.Layout()
@@ -237,29 +239,62 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 
 
     def createStepPanel(self, stepDetails):
-        t24TestStep = T24TestStep(stepDetails.keyword)
-        panel = T24TestStepPanel(self.m_scrolledWindow2, t24TestStep)
-        return panel
+        t24TestStep = T24TestStep(stepDetails)
+        self._testSteps.append(t24TestStep)
+
+        if t24TestStep.IsRealTestStep:
+            panel = T24TestStepPanel(self.m_scrolledWindow2, t24TestStep)
+            return panel
+
+        return None
 
 ###########################################################################
 
 class T24TestStepPanelBase ( wx.Panel ):
 
     def __init__( self, parent ):
-        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 683,400 ), style = wx.TAB_TRAVERSAL )
+        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 683,400 ), style = wx.SIMPLE_BORDER|wx.TAB_TRAVERSAL )
 
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
         fgSizer1 = wx.FlexGridSizer( 0, 2, 0, 0 )
-        fgSizer1.SetFlexibleDirection( wx.BOTH )
+        fgSizer1.SetFlexibleDirection( wx.HORIZONTAL )
         fgSizer1.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_NONE )
 
-        self.m_staticline1 = wx.StaticLine( self, wx.ID_ANY, wx.Point( -1,-1 ), wx.Size( 2000,4 ), wx.LI_HORIZONTAL )
+        fgSizer41 = wx.FlexGridSizer( 0, 2, 0, 0 )
+        fgSizer41.SetFlexibleDirection( wx.BOTH )
+        fgSizer41.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+        self.m_staticline1 = wx.StaticLine( self, wx.ID_ANY, wx.Point( -1,-1 ), wx.Size( 570,4 ), wx.LI_HORIZONTAL )
         self.m_staticline1.SetFont( wx.Font( 9, 74, 90, 90, False, "Arial" ) )
         self.m_staticline1.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHT ) )
         self.m_staticline1.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHT ) )
 
-        fgSizer1.Add( self.m_staticline1, 0, wx.EXPAND |wx.ALL, 5 )
+        fgSizer41.Add( self.m_staticline1, 0, wx.EXPAND |wx.ALL, 8 )
+
+
+        fgSizer1.Add( fgSizer41, 1, wx.EXPAND, 5 )
+
+        bSizer8 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_btnUp = wx.Button( self, wx.ID_ANY, u"/\\", wx.DefaultPosition, wx.Size( 22,22 ), wx.BU_BOTTOM|wx.NO_BORDER )
+        self.m_btnUp.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
+
+        bSizer8.Add( self.m_btnUp, 0, wx.BOTTOM|wx.LEFT, 5 )
+
+        self.m_btnDown = wx.Button( self, wx.ID_ANY, u"\\/", wx.DefaultPosition, wx.Size( 22,22 ), wx.BU_TOP|wx.NO_BORDER )
+        self.m_btnDown.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
+
+        bSizer8.Add( self.m_btnDown, 0, wx.BOTTOM|wx.RIGHT, 5 )
+
+        self.m_btnDelete = wx.Button( self, wx.ID_ANY, u"X", wx.DefaultPosition, wx.Size( 22,22 ), 0 )
+        self.m_btnDelete.SetFont( wx.Font( 10, 74, 90, 92, False, "Arial" ) )
+        self.m_btnDelete.SetForegroundColour( wx.Colour( 236, 77, 0 ) )
+
+        bSizer8.Add( self.m_btnDelete, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+
+
+        fgSizer1.Add( bSizer8, 1, wx.EXPAND, 5 )
 
 
         bSizer1.Add( fgSizer1, 0, 0, 5 )
@@ -278,26 +313,14 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_choiceTestStepAction.SetSelection( 0 )
         bSizer4.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
 
-        self.m_txtTestStepTransaction = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 2000,-1 ), 0 )
+        self.m_txtTestStepTransaction = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 514,-1 ), 0 )
         bSizer4.Add( self.m_txtTestStepTransaction, 1, wx.ALL, 5 )
 
         bSizer14 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, u"            ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText3.Wrap( -1 )
         bSizer14.Add( self.m_staticText3, 0, wx.ALL, 5 )
-
-        self.m_btnUp = wx.Button( self, wx.ID_ANY, u"^", wx.DefaultPosition, wx.Size( 24,22 ), 0 )
-        bSizer14.Add( self.m_btnUp, 0, wx.BOTTOM|wx.LEFT, 5 )
-
-        self.m_button3 = wx.Button( self, wx.ID_ANY, u"v", wx.DefaultPosition, wx.Size( 24,22 ), 0 )
-        bSizer14.Add( self.m_button3, 0, wx.BOTTOM|wx.RIGHT, 5 )
-
-        self.m_btnDelete = wx.Button( self, wx.ID_ANY, u"X", wx.DefaultPosition, wx.Size( 20,22 ), 0 )
-        self.m_btnDelete.SetFont( wx.Font( 10, 74, 90, 92, False, "Arial" ) )
-        self.m_btnDelete.SetForegroundColour( wx.Colour( 236, 77, 0 ) )
-
-        bSizer14.Add( self.m_btnDelete, 0, wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
 
 
         bSizer4.Add( bSizer14, 0, wx.EXPAND, 5 )
@@ -309,7 +332,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         fgSizer4.SetFlexibleDirection( wx.BOTH )
         fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-        self.m_staticline2 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 2000,-1 ), wx.LI_HORIZONTAL )
+        self.m_staticline2 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 664,-1 ), wx.LI_HORIZONTAL )
         fgSizer4.Add( self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5 )
 
 
