@@ -2,22 +2,97 @@ __author__ = 'Zhelev'
 
 
 class T24TestStep(object):
+
+    _stepPreActions = None
+    _stepDetails = None
+
     Action = ''
     AppVersion = ''
 
-    def __init__( self, text ):
-        self.parseTestStep(text)
+    TestData = []
 
-    def parseTestStep(self, text):
+    IsRealTestStep=False
+
+    def __init__( self, stepPreActions, stepDetails ):
+        # todo - stepPreActions are the keywords for initialization of variables etc that belong to the entire test step
+        self._stepPreActions = stepPreActions
+        self._stepDetails = stepDetails
+        self.IsRealTestStep = self.parseTestStep(stepDetails)
+
+    @staticmethod
+    def isT24TestStep(stepDetails):
+        return T24TestStep(None, stepDetails).Action != ''
+
+    def parseTestStep(self, stepDetails):
         # todo-parse the text and init the object
         # todo - this is just for the demo - real parsing must be implemented
-        if text.startswith('I'):
+        if stepDetails.keyword == 'Create Or Amend T24 Record':
             self.Action='I'
-            self.AppVersion='CUSTOMER,IND'
+            self.setCreateOrAmendArgs(stepDetails.args)
         else:
-            self.Action='A'
-            self.AppVersion='CUSTOMER,CORP'
-        pass
+            return False
+
+        return True
+
+    def setCreateOrAmendArgs(self, args):
+        # Expected Format
+        # Create Or Amend T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling} {postVerifications}
+        #
+        if not args:
+            return;
+
+        if args.__len__ >= 1:
+            self.AppVersion=args[0]
+
+        if args.__len__ >= 2:
+            self.setRecordFieldValues(args[1])
+
+        """ todo
+        if args.__len__ >= 3:
+            setOverridesHandling(args[2])
+
+        if args.__len__ >=4:
+            setErrorsHandling(args[3])
+
+        if args.__len__ >=5:
+            setPostVerification(args[4])
+        """
+
+    def setRecordFieldValues(self, arg):
+        testDataList = self.findPreAction("Create List", arg)
+        if testDataList is None:
+            return
+
+        self.TestData = self.getNameValueList(testDataList.args)
+
+    def getNameValueList(self, list):
+        if list is None:
+            return None
+
+        res = []
+
+        for item in list:
+            eqIdx = item.index('=')
+            if eqIdx < 0:
+                return None # todo - mayber report an error?
+
+            name = item[:eqIdx].strip()
+            value = item[eqIdx+1:].strip()
+            res.append((name,value))
+
+        return res;
+
+    def findPreAction(self, keyword, assign):
+        if self._stepPreActions is None:
+            return None
+
+        for pa in self._stepPreActions:
+            # todo - this should be revised but currently work for:
+            # @{fields1}=    Create List    NAME.1.1 = John    MNEMONIC = ${mnemonic}
+            if pa.keyword == keyword and pa.assign is not None and pa.assign[0] == "{}=".format(assign):
+                return pa
+
+        return None
 
     def toString(self):
         # todo - this is just for the demo
