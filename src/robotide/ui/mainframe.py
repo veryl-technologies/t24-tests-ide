@@ -21,6 +21,7 @@ from robotide.controller.commands import SaveFile, SaveAll
 from robotide.publish import (RideSaveAll, RideClosing, RideSaved, PUBLISHER,
         RideInputValidationError, RideTreeSelection, RideModificationPrevented)
 from robotide.ui.tagdialogs import ViewAllTagsDialog
+from robotide.ui.repositorysettingsdialog import RepositorySettingsDialog
 from robotide.utils import RideEventHandler
 from robotide.widgets import Dialog, ImageProvider, HtmlWindow
 from robotide.preferences import PreferenceEditor
@@ -228,12 +229,16 @@ class RideFrame(wx.Frame, RideEventHandler):
         self.tree.refresh_datafile(item, event)
 
     def OnRepository(self, event):
+        dialog = RepositorySettingsDialog(self)
+        dialog.ShowModal()
+        dialog.Destroy()
+
         #HB todo: here goes the code for repository
-        if self.check_unsaved_modifications():
-            path = wx.DirSelector(message='Choose a directory containing Robot files',
-                                  defaultPath=self._controller.default_dir)
-            if path:
-                self.open_suite(path)
+        # if self.check_unsaved_modifications():
+        #     path = wx.DirSelector(message='Choose a directory containing Robot files',
+        #                           defaultPath=self._controller.default_dir)
+        #     if path:
+        #         self.open_suite(path)
 
 
     #def OnOpenDirectory(self, event):
