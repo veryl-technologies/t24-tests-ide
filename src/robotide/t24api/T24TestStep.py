@@ -29,6 +29,9 @@ class T24TestStep(object):
         if stepDetails.keyword == 'Create Or Amend T24 Record':
             self.Action='I'
             self.setCreateOrAmendArgs(stepDetails.args)
+        elif stepDetails.keyword == 'Authorize T24 Record':
+            self.Action='A'
+            self.setCreateOrAmendArgs(stepDetails.args)# todo we have to have other method for setting arguments
         else:
             return False
 
@@ -98,3 +101,12 @@ class T24TestStep(object):
         # todo - this is just for the demo
         # todo - real implementation is needed
         return self.Action + ' ' + self.AppVersion
+
+    def applyChanges(self):
+        # todo - apply other changes also
+        self._stepDetails.args[0] = self.AppVersion
+
+        if self.Action == 'I':
+            self._stepDetails.keyword = 'Create Or Amend T24 Record'
+        elif self.Action == 'A':
+            self._stepDetails.keyword = 'Authorize T24 Record'
