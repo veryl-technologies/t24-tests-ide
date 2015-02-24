@@ -21,6 +21,7 @@ from robotide.controller.commands import SaveFile, SaveAll
 from robotide.publish import (RideSaveAll, RideClosing, RideSaved, PUBLISHER,
         RideInputValidationError, RideTreeSelection, RideModificationPrevented)
 from robotide.ui.tagdialogs import ViewAllTagsDialog
+from robotide.ui.repositorysettingsdialog import RepositorySettingsDialog
 from robotide.utils import RideEventHandler
 from robotide.widgets import Dialog, ImageProvider, HtmlWindow
 from robotide.preferences import PreferenceEditor
@@ -36,11 +37,9 @@ from .progress import LoadProgressObserver
 
 
 _menudata = """
-[File]
-!&New Project | Create a new top level suite | Ctrlcmd-N
----
-!&Open Test Suite | Open file containing tests | Ctrlcmd-O | ART_FILE_OPEN
-!Open &Directory | Open directory containing datafiles | Shift-Ctrlcmd-O | ART_FOLDER_OPEN
+[Setup]
+!&Open Workspace | Open file containing tests | Ctrlcmd-O | ART_FILE_OPEN
+!&Repository | Open Repository with tests | Shift-Ctrlcmd-O | ART_FOLDER_OPEN
 ---
 &Save | Save selected datafile | Ctrlcmd-S | ART_FILE_SAVE
 !Save &All | Save all changes | Ctrlcmd-Shift-S | ART_FILE_SAVE_AS
@@ -184,12 +183,20 @@ class RideFrame(wx.Frame, RideEventHandler):
     def _populate_tree(self):
         self.tree.populate(self._controller)
 
-    def OnOpenTestSuite(self, event):
+    def OnOpenWorkspace(self, event):
+        # HB todo: here goes the code to open workspace
         if not self.check_unsaved_modifications():
             return
         path = self._get_path()
         if path:
             self.open_suite(path)
+
+    #def OnOpenTestSuite(self, event):
+    #    if not self.check_unsaved_modifications():
+    #        return
+    #    path = self._get_path()
+    #    if path:
+    #        self.open_suite(path)
 
     def check_unsaved_modifications(self):
         if self.has_unsaved_changes():
@@ -221,12 +228,25 @@ class RideFrame(wx.Frame, RideEventHandler):
     def refresh_datafile(self, item, event):
         self.tree.refresh_datafile(item, event)
 
-    def OnOpenDirectory(self, event):
-        if self.check_unsaved_modifications():
-            path = wx.DirSelector(message='Choose a directory containing Robot files',
-                                  defaultPath=self._controller.default_dir)
-            if path:
-                self.open_suite(path)
+    def OnRepository(self, event):
+        dialog = RepositorySettingsDialog(self)
+        dialog.ShowModal()
+        dialog.Destroy()
+
+        #HB todo: here goes the code for repository
+        # if self.check_unsaved_modifications():
+        #     path = wx.DirSelector(message='Choose a directory containing Robot files',
+        #                           defaultPath=self._controller.default_dir)
+        #     if path:
+        #         self.open_suite(path)
+
+
+    #def OnOpenDirectory(self, event):
+    #    if self.check_unsaved_modifications():
+    #        path = wx.DirSelector(message='Choose a directory containing Robot files',
+    #                              defaultPath=self._controller.default_dir)
+    #        if path:
+    #            self.open_suite(path)
 
     def OnSave(self, event):
         self.save()
