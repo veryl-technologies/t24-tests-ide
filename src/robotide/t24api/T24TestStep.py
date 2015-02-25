@@ -3,11 +3,19 @@ __author__ = 'Zhelev'
 
 class T24TestStep(object):
 
+    # consts
+    keyword_I = 'Create Or Amend T24 Record'
+    keyword_A = 'Authorize T24 Record'
+    keyword_S = 'Check T24 Record Exists'
+
+    # members
     _stepPreActions = None
     _stepDetails = None
 
+    # properties
     Action = ''
     AppVersion = ''
+    TransactionID = ''
 
     TestData = []
 
@@ -26,13 +34,17 @@ class T24TestStep(object):
     def parseTestStep(self, stepDetails):
         # todo-parse the text and init the object
         # todo - this is just for the demo - real parsing must be implemented
-        if stepDetails.keyword == 'Create Or Amend T24 Record':
+        if stepDetails.keyword == self.keyword_I:
             self.Action='I'
             self.setCreateOrAmendArgs(stepDetails.args)
-        elif stepDetails.keyword == 'Authorize T24 Record':
+        elif stepDetails.keyword == self.keyword_A:
             self.Action='A'
-            self.setCreateOrAmendArgs(stepDetails.args)# todo we have to have other method for setting arguments
+            self.setAuthorizeArgs(stepDetails.args)
+        elif stepDetails.keyword == self.keyword_S:
+            self.Action='S'
+            self.setCheckRecordArgs(stepDetails.args)
         else:
+            # todo - we need to implement other types
             return False
 
         return True
@@ -42,7 +54,7 @@ class T24TestStep(object):
         # Create Or Amend T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling} {postVerifications}
         #
         if not args:
-            return;
+            return
 
         if args.__len__ >= 1:
             self.AppVersion=args[0]
@@ -61,12 +73,49 @@ class T24TestStep(object):
             setPostVerification(args[4])
         """
 
+    def setAuthorizeArgs(self, args):
+        # Expected Format
+        # Authorize T24 Record {application,version} {recordID}
+        if not args:
+            return
+
+        if args.__len__ >= 1:
+            self.AppVersion=args[0]
+
+        if args.__len__ >= 2:
+            self.TransactionID = args[1]
+
+
+    def setCheckRecordArgs(self, args):
+        # Expected Format
+        # Check T24 Record Exists {application,version} {recordID} {recordFieldsToValidate}
+        if not args:
+            return
+
+        if args.__len__ >= 1:
+            self.AppVersion=args[0]
+
+        if args.__len__ >= 2:
+            self.TransactionID = args[1]
+
+        # todo - rest of the arguments
+
     def setRecordFieldValues(self, arg):
         testDataList = self.findPreAction("Create List", arg)
         if testDataList is None:
             return
 
         self.TestData = self.getNameValueList(testDataList.args)
+
+    def subSteps(self):
+        ls = []
+        if self._stepDetails:
+            ls.append(self._stepDetails)
+        if self._stepPreActions:
+            for pa in self._stepPreActions:
+                ls.append(pa)
+
+        return ls
 
     def getNameValueList(self, list):
         if list is None:
@@ -107,6 +156,10 @@ class T24TestStep(object):
         self._stepDetails.args[0] = self.AppVersion
 
         if self.Action == 'I':
-            self._stepDetails.keyword = 'Create Or Amend T24 Record'
+            self._stepDetails.keyword = self.keyword_I
         elif self.Action == 'A':
-            self._stepDetails.keyword = 'Authorize T24 Record'
+            self._stepDetails.keyword = self.keyword_A
+            self._stepDetails.args[1] = self.TransactionID
+        elif self.Action == 'S':
+            self._stepDetails.keyword = self.keyword_S
+            self._stepDetails.args[1] = self.TransactionID

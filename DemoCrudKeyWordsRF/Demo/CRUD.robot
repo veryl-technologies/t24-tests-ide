@@ -10,7 +10,7 @@ Enter an Account
     Authorize T24 Record    CUSTOMER,IND    @{fields1}    Accept All Overrides    ${EMPTY}    ${EMPTY}
     @{fields2}=    Create List    CATEGORY = Nostro    CURRENCY = USD    CUSTOMER = ${LastT24TransactionID}
     Create Or Amend T24 Record    ACCOUNT,FR    @{fields2}    ${EMPTY}    ${EMPTY}    ${EMPTY}    ${EMPTY}
-    ...    Verfiy All Input Values Are Properly Saved
+    Check T24 Record Exists    ACCOUNT,FR    ZZZZ    Verfiy All Input Values Are Properly Saved
 
 Enter an Account (verbose)
     ${mnemonic}=    Get Unique Mnemonic
