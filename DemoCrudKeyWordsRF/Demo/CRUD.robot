@@ -7,10 +7,10 @@ Resource          custom.robot
 Enter an Account
     ${mnemonic}=    Get Unique Mnemonic
     @{fields1}=    Create List    NAME.1.1 = John    MNEMONIC = ${mnemonic}
-    Create Or Amend T24 Record    CUSTOMER    @{fields1}    Accept All Overrides    ${EMPTY}    ${EMPTY}	
+    Authorize T24 Record    CUSTOMER,IND    @{fields1}    Accept All Overrides    ${EMPTY}    ${EMPTY}
     @{fields2}=    Create List    CATEGORY = Nostro    CURRENCY = USD    CUSTOMER = ${LastT24TransactionID}
-    Create Or Amend T24 Record    ACCOUNT   @{fields2}    ${EMPTY}     ${EMPTY}    ${EMPTY}    ${EMPTY}
-    ...    Verfiy All Input Values Are Properly Saved
+    Create Or Amend T24 Record    ACCOUNT,FR    @{fields2}    ${EMPTY}    ${EMPTY}    ${EMPTY}    ${EMPTY}
+    Check T24 Record Exists    ACCOUNT,FR    ZZZZ    Verfiy All Input Values Are Properly Saved
 
 Enter an Account (verbose)
     ${mnemonic}=    Get Unique Mnemonic
@@ -25,6 +25,3 @@ Enter an Account (verbose)
     Enter T24 Text Field Value    CATEGORY    Nostro
     Enter T24 Text Field Value    CURRENCY    USD
     Get Result Of Attempt to Complete T24 Transaction
-    Accept Overrides after T24 Action
-    Get Result Of Attempt to Complete T24 Transaction
-    Close T24 Record Ammendment Page

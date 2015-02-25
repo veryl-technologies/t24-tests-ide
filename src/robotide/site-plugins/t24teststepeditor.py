@@ -39,18 +39,40 @@ except Exception as e:
 # from ..editor.popupwindow import HtmlDialog
 
 
+class TestStepEventListener:
 
-class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
+    def __init__(self):
+        pass
+
+    def onTestStepChanged(self, testStep):
+        pass
+
+    def onTestStepDeleted(self, testStep):
+        pass
+
+class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
     title = 'Test Steps'
 
     def __init__(self, application):
         Plugin.__init__(self, application)
         self._editor_component = None
 
+    def onTestStepChanged(self, testStep):
+        self.tree.get_selected_datafile_controller().mark_dirty()
+
+    def onTestStepDeleted(self, testStep):
+        if self._current_test_case:
+            for subStep in testStep.subSteps():
+                self._current_test_case.steps.remove(subStep)
+
+        self.tree.get_selected_datafile_controller().mark_dirty()
+
     @property
     def _editor(self):
         if not self._editor_component:
             self._editor_component = T24TestStepsContainer(self.notebook, self.title)
+            self._editor_component._eventListeners.append(self)
+
             self.add_tab(self._editor_component, self.title, allow_closing=False)
             self.show_tab(self.title)
             self._refresh_timer = wx.Timer(self._editor_component)
@@ -103,8 +125,14 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
         self.show_tab(self._editor)
 
     def OnSaving(self, message):
-        if self.is_focused():
-            self._editor.save()
+        pass
+        #if self.is_focused():
+            # self._editor.save()
+            # NOTE: All of the changes must be executed by T24TestStepPanel and its _testStep memner
+            #controller = self.tree.get_selected_datafile_controller()
+            #bub = self._current_test_case
+            #controller.datafile.testcase_table.test
+            #bui = controller
 
     def OnDataChanged(self, message):
         if self._should_process_data_changed_message(message):
@@ -124,6 +152,12 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
 
     def OnTreeSelection(self, message):
         # self._editor.store_position()
+        self._last_tree_selection_message = message;
+        if message.node._data.item.__class__.__name__ is 'TestCase':
+            self._current_test_case = message.node._data.item
+        else:
+            self._current_test_case = None
+
         if self.is_focused():
             if message.node._data.item.__class__.__name__ is 'TestCase':
                 self._editor.setTestCase(message.node, self.tree)
@@ -155,6 +189,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin):
         if message.newtab == self.title:
             self._open()
             self._editor.set_editor_caret_position()
+            self.OnTreeSelection(self._last_tree_selection_message)
         elif message.oldtab == self.title:
             self._editor.remove_and_store_state()
 
@@ -199,6 +234,8 @@ class T24TestStepsContainerBase ( wx.Panel ):
 
 class T24TestStepsContainer(T24TestStepsContainerBase):
 
+    _eventListeners = []
+
     _testCaseTreeNode = None
     _tree = None
     _testSteps = []
@@ -242,17 +279,25 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 
             self.Layout()
 
-
-
     def createStepPanel(self, stepPreActions, stepDetails):
         t24TestStep = T24TestStep(stepPreActions, stepDetails)
         self._testSteps.append(t24TestStep)
 
         if t24TestStep.IsRealTestStep:
-            panel = T24TestStepPanel(self.m_scrolledWindow2, t24TestStep)
+            panel = T24TestStepPanel(self.m_scrolledWindow2, self, t24TestStep)
             return panel
 
         return None
+
+    def fireOnTestStepChangeEvent(self, testStep):
+        if not not self._eventListeners:
+            for el in self._eventListeners:
+                el.onTestStepChanged(testStep)
+
+    def fireOnTestStepDeleteEvent(self, testStep):
+        if not not self._eventListeners:
+            for el in self._eventListeners:
+                el.onTestStepDeleted(testStep)
 
 ###########################################################################
 
@@ -262,6 +307,20 @@ class T24TestStepPanelBase ( wx.Panel ):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 683,400 ), style = wx.SIMPLE_BORDER|wx.TAB_TRAVERSAL )
 
         bSizer1 = wx.BoxSizer( wx.VERTICAL )
+
+        bSizer91 = wx.BoxSizer( wx.HORIZONTAL )
+
+        bSizer8 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_btnNew = wx.Button( self, wx.ID_ANY, u"+", wx.DefaultPosition, wx.Size( 22,22 ), 0 )
+        self.m_btnNew.SetFont( wx.Font( 10, 74, 90, 92, False, "Arial Black" ) )
+        self.m_btnNew.SetForegroundColour( wx.Colour( 0, 128, 0 ) )
+        self.m_btnNew.SetToolTipString( u"Create and insert new test step before current one" )
+
+        bSizer8.Add( self.m_btnNew, 0, wx.BOTTOM|wx.RIGHT, 5 )
+
+
+        bSizer91.Add( bSizer8, 1, wx.ALIGN_LEFT, 0 )
 
         bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
 
@@ -285,7 +344,10 @@ class T24TestStepPanelBase ( wx.Panel ):
         bSizer9.Add( self.m_btnDelete, 0, wx.BOTTOM|wx.LEFT, 5 )
 
 
-        bSizer1.Add( bSizer9, 0, wx.ALIGN_RIGHT, 0 )
+        bSizer91.Add( bSizer9, 0, wx.ALIGN_RIGHT, 0 )
+
+
+        bSizer1.Add( bSizer91, 0, wx.EXPAND, 5 )
 
         bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
 
@@ -319,9 +381,9 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerTransactionID = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"@ID", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText2.Wrap( -1 )
-        self.m_sizerTransactionID.Add( self.m_staticText2, 0, wx.ALL, 8 )
+        self.m_lblTransID = wx.StaticText( self, wx.ID_ANY, u"@ID", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_lblTransID.Wrap( -1 )
+        self.m_sizerTransactionID.Add( self.m_lblTransID, 0, wx.ALL, 8 )
 
         self.m_txtTransactionID = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 320,-1 ), 0 )
         self.m_sizerTransactionID.Add( self.m_txtTransactionID, 0, wx.ALL, 5 )
@@ -359,7 +421,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         # Rows
         self.m_gridTestData.EnableDragRowSize( True )
-        self.m_gridTestData.SetRowLabelSize( 0 )
+        self.m_gridTestData.SetRowLabelSize( 30 )
         self.m_gridTestData.SetRowLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
 
         # Label Appearance
@@ -380,6 +442,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.Layout()
 
         # Connect Events
+        self.m_btnNew.Bind( wx.EVT_BUTTON, self.onNewTestStepBefore )
         self.m_btnUp.Bind( wx.EVT_BUTTON, self.onBtnMoveUp )
         self.m_btnDown.Bind( wx.EVT_BUTTON, self.onBtnMoveDown )
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
@@ -392,6 +455,9 @@ class T24TestStepPanelBase ( wx.Panel ):
 
 
     # Virtual event handlers, overide them in your derived class
+    def onNewTestStepBefore( self, event ):
+        event.Skip()
+
     def onBtnMoveUp( self, event ):
         event.Skip()
 
@@ -411,29 +477,47 @@ class T24TestStepPanelBase ( wx.Panel ):
         event.Skip()
 
 ###########################################################################
-
 class T24TestStepPanel (T24TestStepPanelBase):
 
     _testStep = None
+    _testStepsContainer = None;
 
-    def __init__( self, parent, testStep ):
+    def __init__(self, parent, testStepContainer, testStep):
         T24TestStepPanelBase.__init__ ( self, parent )
         self._testStep = testStep
         self.setTestStepDetails()
         self.updateUI()
 
+        # leave it last not to fire change events during initialization
+        self._testStepsContainer = testStepContainer
+
     def __del__( self ):
         pass
 
     def OnActionChanged( self, event ):
-        if self._testStep is not None:
+        if self._testStep:
             self._testStep.Action = self.m_choiceTestStepAction.GetStringSelection()
+            self._testStep.applyChanges()
             self.updateUI()
             self.Parent.Layout()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
+    def OnTransactionChanged( self, event ):
+        if self._testStep:
+            self._testStep.AppVersion = self.m_txtTestStepTransaction.GetValue()
+            self._testStep.applyChanges()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
+    def onTransactionIDChanged(self, event):
+        if self._testStep:
+            self._testStep.TransactionID = self.m_txtTransactionID.GetValue()
+            self._testStep.applyChanges()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def setTestStepDetails(self):
         self.m_choiceTestStepAction.SetSelection(self.m_choiceTestStepAction.FindString(self._testStep.Action))
         self.m_txtTestStepTransaction.SetValue(self._testStep.AppVersion)
+        self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
 
     def updateUI(self):
         if self._testStep is None:
@@ -447,8 +531,18 @@ class T24TestStepPanel (T24TestStepPanelBase):
         elif self._testStep.Action == 'A':
             self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(False)
-        # todo - rest of cases
+        elif self._testStep.Action == 'S':
+            self.m_sizerTransactionID.ShowItems(True)
+            self.m_sizerTestData.ShowItems(False)
 
+        # todo - rest of cases
+        else:
+            # self.m_lblTransID.SetLabel('TODO Not Implemented')
+            self.m_sizerTransactionID.ShowItems(False)
+            self.m_sizerTestData.ShowItems(False)
+
+
+        self.Update()
         self.Layout()
 
     def setTestData(self, testData):
@@ -456,7 +550,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         self.m_gridTestData.DeleteRows(0, self.m_gridTestData.GetNumberRows(), True)
 
         if testData is None:
-            return;
+            return
 
         self.m_gridTestData.AppendRows(testData.__len__())
 
@@ -466,7 +560,6 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_gridTestData.SetCellValue(row,2,attr[1])
 
             row+=1
-
 
     @staticmethod
     def Warn(parent, message, caption = 'Warning!'):
@@ -488,12 +581,16 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def onBtnDelete( self, event ):
         if T24TestStepPanel.confirmTestStepDeletion(self, self._testStep.toString()):
             parent = self.Parent
+            container = self._testStepsContainer
+            testStep = self._testStep
             self.Destroy()
             parent.Layout()
-
+            container.fireOnTestStepDeleteEvent(testStep)
 
     def onBtnMoveUp( self, event ):
         T24TestStepPanel.Warn(self, "TODO: Not implemented")
+        self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onBtnMoveDown( self, event ):
         T24TestStepPanel.Warn(self, "TODO: Not implemented")
+        self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
