@@ -44,6 +44,9 @@ class TestStepEventListener:
     def __init__(self):
         pass
 
+    def onTestStepCreated(self, testStep, insertBeforeTestStep):
+        pass
+
     def onTestStepChanged(self, testStep):
         pass
 
@@ -56,6 +59,18 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
     def __init__(self, application):
         Plugin.__init__(self, application)
         self._editor_component = None
+
+    def onTestStepCreated(self, testStep, insertBeforeTestStep):
+        if insertBeforeTestStep: # insert before
+            idx = self._current_test_case.steps.index(insertBeforeTestStep.subSteps()[0])
+            for subStep in testStep.subSteps():
+                self._current_test_case.steps.insert(idx, subStep)
+                idx+=1
+        else: # last one
+            for subStep in testStep.subSteps():
+                self._current_test_case.steps.append(subStep)
+
+        self.tree.get_selected_datafile_controller().mark_dirty()
 
     def onTestStepChanged(self, testStep):
         self.tree.get_selected_datafile_controller().mark_dirty()
@@ -262,6 +277,8 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 
         stepPreActions = []
 
+        stepIdx = 1
+
         if testSteps is not None:
             for step in testSteps:
                 if not T24TestStep.isT24TestStep(step):
@@ -269,7 +286,9 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
                 else:
                     panel = self.createStepPanel(stepPreActions, step)
                     stepPreActions = []
-                    if not not panel:
+                    if panel:
+                        panel.setIndex(stepIdx)
+                        stepIdx+=1
                         self.m_sizerTestStepsContainer.Add(panel, 1, wx.EXPAND |wx.ALL, 5 )
 
             self.m_scrolledWindow2.SetSizer(self.m_sizerTestStepsContainer)
@@ -283,11 +302,24 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
         t24TestStep = T24TestStep(stepPreActions, stepDetails)
         self._testSteps.append(t24TestStep)
 
-        if t24TestStep.IsRealTestStep:
-            panel = T24TestStepPanel(self.m_scrolledWindow2, self, t24TestStep)
+        return self.createTestStepPanel(t24TestStep)
+
+    def createTestStepPanel(self, testStep):
+        if testStep.IsRealTestStep:
+            panel = T24TestStepPanel(self.m_scrolledWindow2, self, testStep)
             return panel
 
         return None
+
+    def fireOnNewTestStepBeforeEvent(self, insertBeforeTestStep):
+        testStep = T24TestStep.createNew()
+
+        if self._eventListeners:
+            for el in self._eventListeners:
+                el.onTestStepCreated(testStep, insertBeforeTestStep)
+
+        # recreate self
+        self.setTestCase(self._testCaseTreeNode, self._tree)
 
     def fireOnTestStepChangeEvent(self, testStep):
         if not not self._eventListeners:
@@ -304,98 +336,125 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 class T24TestStepPanelBase ( wx.Panel ):
 
     def __init__( self, parent ):
-        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 683,400 ), style = wx.SIMPLE_BORDER|wx.TAB_TRAVERSAL )
+        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 683,295 ), style = wx.TAB_TRAVERSAL )
 
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+        bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 
-        bSizer91 = wx.BoxSizer( wx.HORIZONTAL )
+        bSizer10 = wx.BoxSizer( wx.VERTICAL )
 
-        bSizer8 = wx.BoxSizer( wx.HORIZONTAL )
+        bSizer111 = wx.BoxSizer( wx.VERTICAL )
 
-        self.m_btnNew = wx.Button( self, wx.ID_ANY, u"+", wx.DefaultPosition, wx.Size( 22,22 ), 0 )
-        self.m_btnNew.SetFont( wx.Font( 10, 74, 90, 92, False, "Arial Black" ) )
-        self.m_btnNew.SetForegroundColour( wx.Colour( 0, 128, 0 ) )
-        self.m_btnNew.SetToolTipString( u"Create and insert new test step before current one" )
+        self.m_btnNewBefore = wx.Button( self, wx.ID_ANY, u"+", wx.DefaultPosition, wx.Size( 22,22 ), 0 )
+        self.m_btnNewBefore.SetFont( wx.Font( 10, 74, 90, 92, False, "Arial Black" ) )
+        self.m_btnNewBefore.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHTTEXT ) )
+        self.m_btnNewBefore.SetBackgroundColour( wx.Colour( 0, 128, 0 ) )
+        self.m_btnNewBefore.SetToolTipString( u"Create and insert new test step before current one" )
 
-        bSizer8.Add( self.m_btnNew, 0, wx.BOTTOM|wx.RIGHT, 5 )
+        bSizer111.Add( self.m_btnNewBefore, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
 
 
-        bSizer91.Add( bSizer8, 1, wx.ALIGN_LEFT, 0 )
+        bSizer10.Add( bSizer111, 1, 0, 5 )
 
-        bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
+        bSizer12 = wx.BoxSizer( wx.VERTICAL )
 
         self.m_btnUp = wx.Button( self, wx.ID_ANY, u"/\\", wx.DefaultPosition, wx.Size( 22,22 ), wx.BU_BOTTOM|wx.NO_BORDER )
         self.m_btnUp.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
         self.m_btnUp.SetToolTipString( u"Move test step up" )
 
-        bSizer9.Add( self.m_btnUp, 0, wx.BOTTOM|wx.LEFT, 5 )
+        bSizer12.Add( self.m_btnUp, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
 
         self.m_btnDown = wx.Button( self, wx.ID_ANY, u"\\/", wx.DefaultPosition, wx.Size( 22,22 ), wx.BU_TOP|wx.NO_BORDER )
         self.m_btnDown.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
         self.m_btnDown.SetToolTipString( u"Move test step down" )
 
-        bSizer9.Add( self.m_btnDown, 0, wx.BOTTOM|wx.RIGHT, 5 )
+        bSizer12.Add( self.m_btnDown, 0, wx.BOTTOM|wx.LEFT, 5 )
 
-        self.m_btnDelete = wx.Button( self, wx.ID_ANY, u"X", wx.Point( -1,-1 ), wx.Size( 22,22 ), 0 )
-        self.m_btnDelete.SetFont( wx.Font( 10, 74, 90, 92, False, "Arial" ) )
-        self.m_btnDelete.SetForegroundColour( wx.Colour( 236, 77, 0 ) )
+        self.m_dummySpacer1 = wx.StaticText( self, wx.ID_ANY, u" ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_dummySpacer1.Wrap( -1 )
+        bSizer12.Add( self.m_dummySpacer1, 0, wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+
+        self.m_btnNewAfter = wx.Button( self, wx.ID_ANY, u"+", wx.DefaultPosition, wx.Size( 22,22 ), 0 )
+        self.m_btnNewAfter.SetFont( wx.Font( 10, 74, 90, 92, False, "Arial Black" ) )
+        self.m_btnNewAfter.SetForegroundColour( wx.Colour( 0, 128, 0 ) )
+        self.m_btnNewAfter.Hide()
+        self.m_btnNewAfter.SetToolTipString( u"Create and insert new test step before current one" )
+
+        bSizer12.Add( self.m_btnNewAfter, 0, wx.ALL, 5 )
+
+
+        bSizer10.Add( bSizer12, 0, wx.ALIGN_BOTTOM, 5 )
+
+
+        bSizer1.Add( bSizer10, 0, wx.EXPAND, 5 )
+
+        self.m_panel3 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SIMPLE_BORDER|wx.TAB_TRAVERSAL )
+        bSizer11 = wx.BoxSizer( wx.VERTICAL )
+
+        bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
+
+        bSizer91 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.lblTestStepIndex = wx.StaticText( self.m_panel3, wx.ID_ANY, u"4", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE )
+        self.lblTestStepIndex.Wrap( -1 )
+        self.lblTestStepIndex.SetFont( wx.Font( 12, 74, 93, 92, False, "Arial" ) )
+        self.lblTestStepIndex.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHT ) )
+
+        bSizer91.Add( self.lblTestStepIndex, 0, wx.ALL, 8 )
+
+        m_choiceTestStepActionChoices = [ u"M", u"E(nq)", u"I", u"A", u"S", u"V" ]
+        self.m_choiceTestStepAction = wx.Choice( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.Size( 60,-1 ), m_choiceTestStepActionChoices, 0 )
+        self.m_choiceTestStepAction.SetSelection( 0 )
+        bSizer91.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
+
+        self.m_txtTestStepTransaction = wx.TextCtrl( self.m_panel3, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 514,-1 ), 0 )
+        bSizer91.Add( self.m_txtTestStepTransaction, 0, wx.ALL, 5 )
+
+
+        bSizer4.Add( bSizer91, 1, wx.EXPAND, 5 )
+
+        bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_btnDelete = wx.Button( self.m_panel3, wx.ID_ANY, u"X", wx.Point( -1,-1 ), wx.Size( 22,22 ), 0 )
+        self.m_btnDelete.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
+        self.m_btnDelete.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHTTEXT ) )
+        self.m_btnDelete.SetBackgroundColour( wx.Colour( 236, 77, 0 ) )
         self.m_btnDelete.SetToolTipString( u"Delete the test step" )
 
         bSizer9.Add( self.m_btnDelete, 0, wx.BOTTOM|wx.LEFT, 5 )
 
 
-        bSizer91.Add( bSizer9, 0, wx.ALIGN_RIGHT, 0 )
+        bSizer4.Add( bSizer9, 0, wx.ALIGN_RIGHT, 5 )
 
 
-        bSizer1.Add( bSizer91, 0, wx.EXPAND, 5 )
-
-        bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
-
-        self.lblTestStep = wx.StaticText( self, wx.ID_ANY, u"Test Step", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE )
-        self.lblTestStep.Wrap( -1 )
-        self.lblTestStep.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 93, 92, False, wx.EmptyString ) )
-        self.lblTestStep.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHT ) )
-
-        bSizer4.Add( self.lblTestStep, 0, wx.ALL, 8 )
-
-        m_choiceTestStepActionChoices = [ u"M", u"E(nq)", u"I", u"A", u"S", u"V" ]
-        self.m_choiceTestStepAction = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 60,-1 ), m_choiceTestStepActionChoices, 0 )
-        self.m_choiceTestStepAction.SetSelection( 0 )
-        bSizer4.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
-
-        self.m_txtTestStepTransaction = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 514,-1 ), 0 )
-        bSizer4.Add( self.m_txtTestStepTransaction, 0, wx.ALL, 5 )
-
-
-        bSizer1.Add( bSizer4, 0, wx.ALIGN_LEFT, 5 )
+        bSizer11.Add( bSizer4, 0, wx.ALIGN_LEFT|wx.EXPAND, 5 )
 
         fgSizer4 = wx.FlexGridSizer( 0, 2, 0, 0 )
         fgSizer4.SetFlexibleDirection( wx.BOTH )
         fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-        self.m_staticline2 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 664,-1 ), wx.LI_HORIZONTAL )
+        self.m_staticline2 = wx.StaticLine( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.Size( 664,-1 ), wx.LI_HORIZONTAL )
         fgSizer4.Add( self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5 )
 
 
-        bSizer1.Add( fgSizer4, 0, wx.ALIGN_LEFT, 5 )
+        bSizer11.Add( fgSizer4, 0, wx.ALIGN_LEFT, 5 )
 
         self.m_sizerTransactionID = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_lblTransID = wx.StaticText( self, wx.ID_ANY, u"@ID", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_lblTransID = wx.StaticText( self.m_panel3, wx.ID_ANY, u"@ID", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_lblTransID.Wrap( -1 )
         self.m_sizerTransactionID.Add( self.m_lblTransID, 0, wx.ALL, 8 )
 
-        self.m_txtTransactionID = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 320,-1 ), 0 )
+        self.m_txtTransactionID = wx.TextCtrl( self.m_panel3, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 320,-1 ), 0 )
         self.m_sizerTransactionID.Add( self.m_txtTransactionID, 0, wx.ALL, 5 )
 
 
-        bSizer1.Add( self.m_sizerTransactionID, 0, wx.EXPAND, 5 )
+        bSizer11.Add( self.m_sizerTransactionID, 0, wx.EXPAND, 5 )
 
         self.m_sizerTestData = wx.BoxSizer( wx.VERTICAL )
 
-        sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Test Data" ), wx.VERTICAL )
+        sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Test Data" ), wx.VERTICAL )
 
-        self.m_gridTestData = wx.grid.Grid( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_gridTestData = wx.grid.Grid( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
         # Grid
         self.m_gridTestData.CreateGrid( 3, 4 )
@@ -435,24 +494,30 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_sizerTestData.Add( sbSizer3, 0, wx.EXPAND, 5 )
 
 
-        bSizer1.Add( self.m_sizerTestData, 0, wx.EXPAND, 5 )
+        bSizer11.Add( self.m_sizerTestData, 0, wx.EXPAND, 5 )
+
+
+        self.m_panel3.SetSizer( bSizer11 )
+        self.m_panel3.Layout()
+        bSizer11.Fit( self.m_panel3 )
+        bSizer1.Add( self.m_panel3, 1, wx.EXPAND |wx.ALL, 5 )
 
 
         self.SetSizer( bSizer1 )
         self.Layout()
 
         # Connect Events
-        self.m_btnNew.Bind( wx.EVT_BUTTON, self.onNewTestStepBefore )
+        self.m_btnNewBefore.Bind( wx.EVT_BUTTON, self.onNewTestStepBefore )
         self.m_btnUp.Bind( wx.EVT_BUTTON, self.onBtnMoveUp )
         self.m_btnDown.Bind( wx.EVT_BUTTON, self.onBtnMoveDown )
+        self.m_btnNewAfter.Bind( wx.EVT_BUTTON, self.onNewTestStepBefore )
+        self.m_choiceTestStepAction.Bind( wx.EVT_CHOICE, self.onActionChanged )
+        self.m_txtTestStepTransaction.Bind( wx.EVT_TEXT, self.onTransactionChanged )
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
-        self.m_choiceTestStepAction.Bind( wx.EVT_CHOICE, self.OnActionChanged )
-        self.m_txtTestStepTransaction.Bind( wx.EVT_TEXT, self.OnTransactionChanged )
         self.m_txtTransactionID.Bind( wx.EVT_TEXT, self.onTransactionIDChanged )
 
     def __del__( self ):
         pass
-
 
     # Virtual event handlers, overide them in your derived class
     def onNewTestStepBefore( self, event ):
@@ -464,13 +529,14 @@ class T24TestStepPanelBase ( wx.Panel ):
     def onBtnMoveDown( self, event ):
         event.Skip()
 
+
+    def onActionChanged( self, event ):
+        event.Skip()
+
+    def onTransactionChanged( self, event ):
+        event.Skip()
+
     def onBtnDelete( self, event ):
-        event.Skip()
-
-    def OnActionChanged( self, event ):
-        event.Skip()
-
-    def OnTransactionChanged( self, event ):
         event.Skip()
 
     def onTransactionIDChanged( self, event ):
@@ -494,7 +560,10 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def __del__( self ):
         pass
 
-    def OnActionChanged( self, event ):
+    def setIndex(self, idx):
+        self.lblTestStepIndex.SetLabel('{}'.format(idx))
+
+    def onActionChanged( self, event ):
         if self._testStep:
             self._testStep.Action = self.m_choiceTestStepAction.GetStringSelection()
             self._testStep.applyChanges()
@@ -502,7 +571,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.Parent.Layout()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def OnTransactionChanged( self, event ):
+    def onTransactionChanged( self, event ):
         if self._testStep:
             self._testStep.AppVersion = self.m_txtTestStepTransaction.GetValue()
             self._testStep.applyChanges()
@@ -586,6 +655,9 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.Destroy()
             parent.Layout()
             container.fireOnTestStepDeleteEvent(testStep)
+
+    def onNewTestStepBefore( self, event ):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep)
 
     def onBtnMoveUp( self, event ):
         T24TestStepPanel.Warn(self, "TODO: Not implemented")

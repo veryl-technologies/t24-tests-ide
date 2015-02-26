@@ -1,5 +1,6 @@
 __author__ = 'Zhelev'
 
+from robot.parsing.model import Step
 
 class T24TestStep(object):
 
@@ -56,20 +57,20 @@ class T24TestStep(object):
         if not args:
             return
 
-        if args.__len__ >= 1:
+        if args.__len__() >= 1:
             self.AppVersion=args[0]
 
-        if args.__len__ >= 2:
+        if args.__len__() >= 2:
             self.setRecordFieldValues(args[1])
 
         """ todo
-        if args.__len__ >= 3:
+        if args.__len__() >= 3:
             setOverridesHandling(args[2])
 
-        if args.__len__ >=4:
+        if args.__len__() >=4:
             setErrorsHandling(args[3])
 
-        if args.__len__ >=5:
+        if args.__len__() >=5:
             setPostVerification(args[4])
         """
 
@@ -79,10 +80,10 @@ class T24TestStep(object):
         if not args:
             return
 
-        if args.__len__ >= 1:
+        if args.__len__() >= 1:
             self.AppVersion=args[0]
 
-        if args.__len__ >= 2:
+        if args.__len__() >= 2:
             self.TransactionID = args[1]
 
 
@@ -92,10 +93,10 @@ class T24TestStep(object):
         if not args:
             return
 
-        if args.__len__ >= 1:
+        if args.__len__() >= 1:
             self.AppVersion=args[0]
 
-        if args.__len__ >= 2:
+        if args.__len__() >= 2:
             self.TransactionID = args[1]
 
         # todo - rest of the arguments
@@ -116,6 +117,14 @@ class T24TestStep(object):
                 ls.append(pa)
 
         return ls
+
+    # create default step type
+    @staticmethod
+    def createNew():
+        stepDetails = Step('')
+        stepDetails.keyword='Create Or Amend T24 Record'
+        stepDetails.args=['']
+        return T24TestStep([],stepDetails)
 
     def getNameValueList(self, list):
         if list is None:
