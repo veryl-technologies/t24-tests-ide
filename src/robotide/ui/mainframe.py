@@ -184,19 +184,17 @@ class RideFrame(wx.Frame, RideEventHandler):
         self.tree.populate(self._controller)
 
     def OnOpenWorkspace(self, event):
-        # HB todo: here goes the code to open workspace
-        if not self.check_unsaved_modifications():
-            return
-        path = self._get_path()
+        path = wx.DirSelector(message='Choose a directory containing Robot files',
+                              defaultPath=self._controller.default_dir)
         if path:
             self.open_suite(path)
 
-    #def OnOpenTestSuite(self, event):
-    #    if not self.check_unsaved_modifications():
-    #        return
-    #    path = self._get_path()
-    #    if path:
-    #        self.open_suite(path)
+
+        # if not self.check_unsaved_modifications():
+        #     return
+        # path = self._get_path()
+        # if path:
+        #     self.open_suite(path)
 
     def check_unsaved_modifications(self):
         if self.has_unsaved_changes():
