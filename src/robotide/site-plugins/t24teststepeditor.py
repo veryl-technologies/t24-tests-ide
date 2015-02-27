@@ -102,7 +102,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
         self.subscribe(self.OnDataChanged, RideMessage)
         self.subscribe(self.OnTabChange, RideNotebookTabChanging)
         self._register_shortcuts()
-        self._open()
+        self.show_tab(self._editor)
 
     def _register_shortcuts(self):
         def focused(func):
@@ -131,13 +131,8 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
         self._editor_component = None
 
     def OnOpen(self, event):
-        self._open()
-
-    def _open(self):
-        datafile_controller = self.tree.get_selected_datafile_controller()
-        if datafile_controller:
-            self._open_data_for_controller(datafile_controller)
-        self.show_tab(self._editor)
+        #self.show_tab(self._editor)
+        pass
 
     def OnSaving(self, message):
         pass
@@ -150,15 +145,18 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
             #bui = controller
 
     def OnDataChanged(self, message):
+        pass
+        """
         if self._should_process_data_changed_message(message):
             if isinstance(message, RideOpenSuite):
                 self._editor.reset()
             if self._editor.dirty:
                 self._apply_txt_changes_to_model()
             self._refresh_timer.Start(500, True) # For performance reasons only run after all the data changes
+        """
 
     def _on_timer(self, event):
-        self._open_tree_selection_in_editor()
+        # self._open_tree_selection_in_editor()
         event.Skip()
 
     def _should_process_data_changed_message(self, message):
@@ -173,7 +171,8 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
         else:
             self._current_test_case = None
 
-        if self.is_focused():
+        if self.is_focused() or self.tabJustChanged:
+            self.tabJustChanged = False
             if message.node._data.item.__class__.__name__ is 'TestCase':
                 self._editor.setTestCase(message.node, self.tree)
             else:
@@ -189,31 +188,10 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
             #    self._open_data_for_controller(next_datafile_controller)
             #    self._editor.set_editor_caret_position()
 
-
-    def _open_tree_selection_in_editor(self):
-        datafile_controller = self.tree.get_selected_datafile_controller()
-        if datafile_controller:
-            self._editor.open(DataFileWrapper(datafile_controller,
-                                              self.global_settings))
-
-    def _open_data_for_controller(self, datafile_controller):
-        self._editor.selected(DataFileWrapper(datafile_controller,
-                                              self.global_settings))
-
     def OnTabChange(self, message):
         if message.newtab == self.title:
-            self._open()
-            self._editor.set_editor_caret_position()
+            self.tabJustChanged=True
             self.OnTreeSelection(self._last_tree_selection_message)
-        elif message.oldtab == self.title:
-            self._editor.remove_and_store_state()
-
-
-    def _apply_txt_changes_to_model(self):
-        if not self._editor.save():
-            return False
-        self._editor.reset()
-        return True
 
     def is_focused(self):
         return self.notebook.current_page_title == self.title
