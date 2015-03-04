@@ -33,6 +33,7 @@ class T24TestStep(object):
         return T24TestStep(None, stepDetails).Action != ''
 
     def parseTestStep(self, stepDetails):
+        self._testDataPreAction = None
         # todo-parse the text and init the object
         # todo - this is just for the demo - real parsing must be implemented
         if stepDetails.keyword == self.keyword_I:
@@ -106,6 +107,7 @@ class T24TestStep(object):
         if testDataList is None:
             return
 
+        self._testDataPreAction = testDataList
         self.TestData = self.getNameValueList(testDataList.args)
 
     def subSteps(self):
@@ -133,15 +135,29 @@ class T24TestStep(object):
         res = []
 
         for item in list:
-            eqIdx = item.index('=')
+            eqIdx = item.find('=')
             if eqIdx < 0:
-                return None # todo - mayber report an error?
+                return None # todo - maybe report an error?
 
             name = item[:eqIdx].strip()
             value = item[eqIdx+1:].strip()
             res.append((name,value))
 
         return res;
+
+    def applyTestDataChanges(self):
+        if not self._testDataPreAction:
+            # todo - we have to create it!!!
+            return
+
+        self._testDataPreAction.args = []
+
+        # todo - we have to identify whether the test data is changed and if not this func must result false
+        # todo - then the caller function will know whether this is a real change or not!
+
+        for td in self.TestData:
+           self._testDataPreAction.args.append('{}={}'.format(td[0],td[1]))
+
 
     def findPreAction(self, keyword, assign):
         if self._stepPreActions is None:

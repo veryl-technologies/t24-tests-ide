@@ -24,6 +24,8 @@ from robotide.pluginapi import (Plugin, RideSaving, TreeAwarePluginMixin,
 from robotide.widgets.text import TextField
 from robotide.widgets.label import Label
 
+from robotide.action.actioninfo import ActionInfo
+
 from robotide.t24api.T24TestStep import T24TestStep
 
 
@@ -85,7 +87,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
     @property
     def _editor(self):
         if not self._editor_component:
-            self._editor_component = T24TestStepsContainer(self.notebook, self.title)
+            self._editor_component = T24TestStepsContainer(self.notebook, self)
             self._editor_component._eventListeners.append(self)
 
             self.add_tab(self._editor_component, self.title, allow_closing=False)
@@ -101,27 +103,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
         self.subscribe(self.OnTreeSelection, RideTreeSelection)
         self.subscribe(self.OnDataChanged, RideMessage)
         self.subscribe(self.OnTabChange, RideNotebookTabChanging)
-        self._register_shortcuts()
         self.show_tab(self._editor)
-
-    def _register_shortcuts(self):
-        def focused(func):
-            def f(event):
-                if self.is_focused() and self._editor.is_focused():
-                    func(event)
-            return f
-        self.register_shortcut('CtrlCmd-X', focused(lambda e: self._editor.cut()))
-        self.register_shortcut('CtrlCmd-C', focused(lambda e: self._editor.copy()))
-        if IS_MAC: # Mac needs this key binding
-            self.register_shortcut('CtrlCmd-A', focused(lambda e: self._editor.select_all()))
-        if IS_WINDOWS or IS_MAC: # Linux does not need this key binding
-            self.register_shortcut('CtrlCmd-V', focused(lambda e: self._editor.paste()))
-        self.register_shortcut('CtrlCmd-Z', focused(lambda e: self._editor.undo()))
-        self.register_shortcut('CtrlCmd-Y', focused(lambda e: self._editor.redo()))
-        self.register_shortcut('Del', focused(lambda e: self._editor.delete()))
-        self.register_shortcut('CtrlCmd-F', lambda e: self._editor._search_field.SetFocus())
-        self.register_shortcut('CtrlCmd-G', lambda e: self._editor.OnFind(e))
-        self.register_shortcut('CtrlCmd-Shift-G', lambda e: self._editor.OnFindBackwards(e))
 
     def disable(self):
         self.remove_self_from_tree_aware_plugins()
@@ -233,8 +215,11 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
     _tree = None
     _testSteps = []
 
-    def __init__( self, parent, title ):
-        T24TestStepsContainerBase.__init__(self,parent)
+    _plugin = None
+
+    def __init__( self, parent, parentPlugin ):
+        T24TestStepsContainerBase.__init__(self, parent)
+        self._plugin = parentPlugin
 
     def __del__( self ):
         pass
@@ -347,7 +332,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer12.Add( self.m_btnDown, 0, wx.BOTTOM|wx.LEFT, 5 )
 
-        self.m_dummySpacer1 = wx.StaticText( self, wx.ID_ANY, u" ", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_dummySpacer1 = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_dummySpacer1.Wrap( -1 )
         bSizer12.Add( self.m_dummySpacer1, 0, wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
 
@@ -385,7 +370,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         bSizer91.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
 
         self.m_txtTestStepTransaction = wx.TextCtrl( self.m_panel3, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 514,-1 ), 0 )
-        bSizer91.Add( self.m_txtTestStepTransaction, 0, wx.ALL, 5 )
+        bSizer91.Add( self.m_txtTestStepTransaction, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
 
         bSizer4.Add( bSizer91, 1, wx.EXPAND, 5 )
@@ -428,48 +413,44 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer11.Add( self.m_sizerTransactionID, 0, wx.EXPAND, 5 )
 
-        self.m_sizerTestData = wx.BoxSizer( wx.VERTICAL )
+        self.m_sizerTestData = wx.BoxSizer( wx.HORIZONTAL )
 
-        sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Test Data" ), wx.VERTICAL )
+        self.m_sizerTestDataCtrlHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"Test Data" ), wx.VERTICAL )
 
-        self.m_gridTestData = wx.grid.Grid( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
-
-        # Grid
-        self.m_gridTestData.CreateGrid( 3, 4 )
-        self.m_gridTestData.EnableEditing( True )
-        self.m_gridTestData.EnableGridLines( True )
-        self.m_gridTestData.EnableDragGridSize( False )
-        self.m_gridTestData.SetMargins( 0, 0 )
-
-        # Columns
-        self.m_gridTestData.SetColSize( 0, 140 )
-        self.m_gridTestData.SetColSize( 1, 140 )
-        self.m_gridTestData.SetColSize( 2, 140 )
-        self.m_gridTestData.SetColSize( 3, 140 )
-        self.m_gridTestData.EnableDragColMove( False )
-        self.m_gridTestData.EnableDragColSize( True )
-        self.m_gridTestData.SetColLabelSize( 30 )
-        self.m_gridTestData.SetColLabelValue( 0, u"Field Name" )
-        self.m_gridTestData.SetColLabelValue( 1, u"Alias" )
-        self.m_gridTestData.SetColLabelValue( 2, u"Const Value" )
-        self.m_gridTestData.SetColLabelValue( 3, u"Variable or Function" )
-        self.m_gridTestData.SetColLabelValue( 4, u"Value" )
-        self.m_gridTestData.SetColLabelAlignment( wx.ALIGN_LEFT, wx.ALIGN_CENTRE )
-
-        # Rows
-        self.m_gridTestData.EnableDragRowSize( True )
-        self.m_gridTestData.SetRowLabelSize( 30 )
-        self.m_gridTestData.SetRowLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
-
-        # Label Appearance
-        self.m_gridTestData.SetLabelBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_MENU ) )
-
-        # Cell Defaults
-        self.m_gridTestData.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-        sbSizer3.Add( self.m_gridTestData, 0, wx.ALL, 5 )
+        # WARNING: wxPython code generation isn't supported for this widget yet.
+        self.m_editTestData = self.createTestDataEditCtrl() #wx.Window( self.m_panel3 )
+        self.m_sizerTestDataCtrlHolder.Add( self.m_editTestData, 1, wx.EXPAND |wx.ALL, 5 )
 
 
-        self.m_sizerTestData.Add( sbSizer3, 0, wx.EXPAND, 5 )
+        self.m_sizerTestData.Add( self.m_sizerTestDataCtrlHolder, 1, wx.LEFT, 5 )
+
+        bSizer13 = wx.BoxSizer( wx.VERTICAL )
+
+        sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"How to Handle Overrides" ), wx.HORIZONTAL )
+
+        m_choiceHowToHandleOverridesChoices = [ u"Accept All", u"Fail", wx.EmptyString, wx.EmptyString ]
+        self.m_choiceHowToHandleOverrides = wx.Choice( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceHowToHandleOverridesChoices, 0 )
+        self.m_choiceHowToHandleOverrides.SetSelection( 0 )
+        sbSizer2.Add( self.m_choiceHowToHandleOverrides, 0, wx.ALIGN_RIGHT, 5 )
+
+
+        bSizer13.Add( sbSizer2, 0, wx.ALIGN_RIGHT, 5 )
+
+        sbSizer21 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel3, wx.ID_ANY, u"How to Handle Errors" ), wx.VERTICAL )
+
+        m_choiceHowToHandleErrorsChoices = [ u"Fail", u"Expect Any Error", u"Expect Error Containing" ]
+        self.m_choiceHowToHandleErrors = wx.Choice( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceHowToHandleErrorsChoices, 0 )
+        self.m_choiceHowToHandleErrors.SetSelection( 0 )
+        sbSizer21.Add( self.m_choiceHowToHandleErrors, 0, wx.ALIGN_RIGHT, 5 )
+
+        self.m_txtExpectErrorContaining = wx.TextCtrl( self.m_panel3, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+        sbSizer21.Add( self.m_txtExpectErrorContaining, 0, wx.ALIGN_RIGHT|wx.TOP, 5 )
+
+
+        bSizer13.Add( sbSizer21, 1, wx.EXPAND|wx.TOP, 5 )
+
+
+        self.m_sizerTestData.Add( bSizer13, 0, wx.ALIGN_RIGHT|wx.RIGHT|wx.LEFT, 5 )
 
 
         bSizer11.Add( self.m_sizerTestData, 0, wx.EXPAND, 5 )
@@ -493,6 +474,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_txtTestStepTransaction.Bind( wx.EVT_TEXT, self.onTransactionChanged )
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
         self.m_txtTransactionID.Bind( wx.EVT_TEXT, self.onTransactionIDChanged )
+        self.m_editTestData.Bind( wx.EVT_KEY_UP, self.onEditTestDataKeyUp )
 
     def __del__( self ):
         pass
@@ -520,8 +502,51 @@ class T24TestStepPanelBase ( wx.Panel ):
     def onTransactionIDChanged( self, event ):
         event.Skip()
 
+    def onEditTestDataKeyUp( self, event ):
+		event.Skip()
+
+    def createTestDataEditCtrl(self):
+        ctrl = wx.stc.StyledTextCtrl(self.m_panel3, wx.ID_ANY)
+
+        # todo - add stryles etc to the control
+        # todo - create simple syntax highlighter. For ex:
+        # MNEMONIC:=SUPER001
+        # SHORT.NAME:=Super Duper
+        # Name.1:=Bab Jaga
+        # City|ADDRESS:1:1=London
+
+        self._register_shortcuts(ctrl)
+        return ctrl
+
+    def _register_shortcuts(self, editor):
+
+        accels = []
+
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('X'),(lambda e: self.m_editTestData.Cut())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('C'),(lambda e: self.m_editTestData.Copy())))
+
+        if IS_MAC: # Mac needs this key binding
+            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('A'),(lambda e: self.m_editTestData.SelectAll())))
+
+        if IS_WINDOWS or IS_MAC: # Linux does not need this key binding
+            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('V'),(lambda e: self.m_editTestData.Paste())))
+
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Z'),(lambda e: self.m_editTestData.Undo())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Y'),(lambda e: self.m_editTestData.Redo())))
+        accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE,(lambda e: self.m_editTestData.DeleteBack())))#todo how to delete the selection?
+        #accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('G'),(lambda e: self.m_editTestData.FindText())))
+
+        self.SetAcceleratorTable(wx.AcceleratorTable(accels))
+
+    def _createAccelerator(self, modifierKey, key, func):
+        cutId = wx.NewId()
+        self.Bind(wx.EVT_MENU, func, id=cutId)
+        return (modifierKey, key, cutId )
+
 ###########################################################################
 class T24TestStepPanel (T24TestStepPanelBase):
+
+
 
     _testStep = None
     _testStepsContainer = None;
@@ -538,6 +563,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def __del__( self ):
         pass
 
+
     def setIndex(self, idx):
         self.lblTestStepIndex.SetLabel('{}'.format(idx))
 
@@ -546,7 +572,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStep.Action = self.m_choiceTestStepAction.GetStringSelection()
             self._testStep.applyChanges()
             self.updateUI()
-            self.Parent.Layout()
+            self.Layout()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onTransactionChanged( self, event ):
@@ -559,6 +585,12 @@ class T24TestStepPanel (T24TestStepPanelBase):
         if self._testStep:
             self._testStep.TransactionID = self.m_txtTransactionID.GetValue()
             self._testStep.applyChanges()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
+    def onEditTestDataKeyUp( self, event ):
+        if self._testStep:
+            self._testStep.TestData = self.getTestDataFromUI()
+            self._testStep.applyTestDataChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def setTestStepDetails(self):
@@ -594,6 +626,19 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
     def setTestData(self, testData):
 
+        self.m_editTestData.Clear()
+
+        if testData is None:
+            return
+
+        for attr in testData:
+            self.m_editTestData.AppendText(attr[0])
+            self.m_editTestData.AppendText(' := ')
+            self.m_editTestData.AppendText(attr[1])
+            self.m_editTestData.AppendText('\r\n')
+
+        ""
+        """
         self.m_gridTestData.DeleteRows(0, self.m_gridTestData.GetNumberRows(), True)
 
         if testData is None:
@@ -607,6 +652,36 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_gridTestData.SetCellValue(row,2,attr[1])
 
             row+=1
+        """
+    def getTestDataFromUI(self):
+
+        res = []
+
+        for line in self.m_editTestData.GetText().split('\n'):
+            nameValue = T24TestStepPanel.splitNameValue(line)
+            if nameValue:
+                res.append(nameValue)
+
+        return res
+
+    @staticmethod
+    def splitNameValue(nameValue):
+
+        if not nameValue or len(nameValue)==0:
+            return None
+
+        pos = nameValue.find(':=')
+        if pos <= 0:
+            return None
+
+        name = nameValue[:pos].strip()
+        value = nameValue[pos+2:].strip()
+
+        if name and len(name)>0:
+            return (name,value)
+
+        return None
+
 
     @staticmethod
     def Warn(parent, message, caption = 'Warning!'):

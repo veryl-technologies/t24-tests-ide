@@ -6,10 +6,11 @@ Resource          custom.robot
 *** Test Cases ***
 Enter an Account
     ${mnemonic}=    Get Unique Mnemonic
-    @{fields1}=    Create List    NAME.1.1 = John    MNEMONIC = ${mnemonic}
-    Create Or Amend T24 Record    SUPER,DUPER
+    @{fields1}=    Create List    NAME.1.1=John    MNEMONIC=${mnemonic}    Short Name=Babchko
+    Create Or Amend T24 Record    SUPER,DUPER    @{fields1}
     Authorize T24 Record    CUSTOMER,IND    @{fields1}    Accept All Overrides    ${EMPTY}    ${EMPTY}
-    Create Or Amend T24 Record    ACCOUNT,FR    \    ${EMPTY}    ${EMPTY}    ${EMPTY}    ${EMPTY}
+    Create Or Amend T24 Record    ${EMPTY}
+    Check T24 Record Exists    ACCOUNT,FR    \    ${EMPTY}    ${EMPTY}    ${EMPTY}    ${EMPTY}
     Check T24 Record Exists    ACCOUNT,FR    ZZZZ    Verfiy All Input Values Are Properly Saved
 
 Enter an Account (verbose)
