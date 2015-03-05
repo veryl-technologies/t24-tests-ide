@@ -364,7 +364,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer91.Add( self.lblTestStepIndex, 0, wx.ALL, 8 )
 
-        m_choiceTestStepActionChoices = [ u"M", u"E(nq)", u"I", u"A", u"S", u"V" ]
+        m_choiceTestStepActionChoices = [ u"M", u"E", u"I", u"A", u"S", u"V" ]
         self.m_choiceTestStepAction = wx.Choice( self.m_panel3, wx.ID_ANY, wx.DefaultPosition, wx.Size( 60,-1 ), m_choiceTestStepActionChoices, 0 )
         self.m_choiceTestStepAction.SetSelection( 0 )
         bSizer91.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
@@ -546,8 +546,6 @@ class T24TestStepPanelBase ( wx.Panel ):
 ###########################################################################
 class T24TestStepPanel (T24TestStepPanelBase):
 
-
-
     _testStep = None
     _testStepsContainer = None;
 
@@ -569,7 +567,14 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
     def onActionChanged( self, event ):
         if self._testStep:
+            oldAction = self._testStep.Action
             self._testStep.Action = self.m_choiceTestStepAction.GetStringSelection()
+
+            if (self._testStep.Action == 'M' and oldAction != 'M') or (self._testStep.Action != 'M' and oldAction == 'M'):
+                # incompatible values for the transaction type / app version
+                self._testStep.AppVersion = ''
+                self.m_txtTestStepTransaction.SetValue('')
+
             self._testStep.applyChanges()
             self.updateUI()
             self.Layout()
@@ -603,6 +608,9 @@ class T24TestStepPanel (T24TestStepPanelBase):
             # hide all
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
+        elif self._testStep.Action == 'M':
+            self.m_sizerTransactionID.ShowItems(False)
+            self.m_sizerTestData.ShowItems(False)
         elif self._testStep.Action == 'I':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
@@ -613,6 +621,15 @@ class T24TestStepPanel (T24TestStepPanelBase):
         elif self._testStep.Action == 'S':
             self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(False)
+        elif self._testStep.Action == 'V':
+            self.m_sizerTransactionID.ShowItems(False)
+            self.m_sizerTestData.ShowItems(True)
+            self.setTestData(self._testStep.TestData)
+        elif self._testStep.Action == 'E':
+            self.m_sizerTransactionID.ShowItems(False)
+            self.m_sizerTestData.ShowItems(False)
+            # todo - we have to set the same text box here but processing enquiry constraints, post filters...
+            self.setTestData(self._testStep.TestData)
 
         # todo - rest of cases
         else:
@@ -621,8 +638,10 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerTestData.ShowItems(False)
 
 
-        self.Update()
+        #self.Update()
+        self.m_panel3.Layout()
         self.Layout()
+
 
     def setTestData(self, testData):
 

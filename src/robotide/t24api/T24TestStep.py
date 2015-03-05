@@ -5,9 +5,12 @@ from robot.parsing.model import Step
 class T24TestStep(object):
 
     # consts
+    keyword_M = 'Execute T24 Menu Command'
     keyword_I = 'Create Or Amend T24 Record'
     keyword_A = 'Authorize T24 Record'
     keyword_S = 'Check T24 Record Exists'
+    keyword_E = 'Execute T24 Enquiry'
+    keyword_V = 'Validate T24 Record'
 
     # members
     _stepPreActions = None
@@ -36,24 +39,45 @@ class T24TestStep(object):
         self._testDataPreAction = None
         # todo-parse the text and init the object
         # todo - this is just for the demo - real parsing must be implemented
-        if stepDetails.keyword == self.keyword_I:
+        if stepDetails.keyword == self.keyword_M:
+            self.Action='M'
+            self.setMenuArgs(stepDetails.args)
+        elif stepDetails.keyword == self.keyword_I:
             self.Action='I'
-            self.setCreateOrAmendArgs(stepDetails.args)
+            self.setCreateOrAmendOrValidateArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_A:
             self.Action='A'
             self.setAuthorizeArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_S:
             self.Action='S'
             self.setCheckRecordArgs(stepDetails.args)
+        elif stepDetails.keyword == self.keyword_E:
+            self.Action='E'
+            self.setEnquiryArgs(stepDetails.args)
+        elif stepDetails.keyword == self.keyword_V:
+            self.Action='V'
+            self.setCreateOrAmendOrValidateArgs(stepDetails.args)
         else:
             # todo - we need to implement other types
             return False
 
         return True
 
-    def setCreateOrAmendArgs(self, args):
+    def setMenuArgs(self, args):
+        # Expected Format
+        # Execute T24 Menu Command {menu_parent_1 \ menu_parent_2 \ ... \ menu_item}
+        #
+        if not args:
+            return
+
+        if args.__len__() >= 1:
+            self.AppVersion=args[0]
+
+    def setCreateOrAmendOrValidateArgs(self, args):
         # Expected Format
         # Create Or Amend T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling} {postVerifications}
+        # or
+        # Validate T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling} {postVerifications}
         #
         if not args:
             return
@@ -101,6 +125,21 @@ class T24TestStep(object):
             self.TransactionID = args[1]
 
         # todo - rest of the arguments
+
+    def setEnquiryArgs(self, args):
+        # Expected Format
+        # Execute T24 Enquiry {Enquiry Name} {constraints} {post filtering constraints} {action} {validation criterias}
+        #
+        # {action} can be real enquiry action or 'Check Values'
+        #
+        #
+        if not args:
+            return
+
+        if args.__len__() >= 1:
+            self.AppVersion=args[0]
+
+        # todo rest of the arguments
 
     def setRecordFieldValues(self, arg):
         testDataList = self.findPreAction("Create List", arg)
@@ -180,7 +219,9 @@ class T24TestStep(object):
         # todo - apply other changes also
         self._stepDetails.args[0] = self.AppVersion
 
-        if self.Action == 'I':
+        if self.Action == 'M':
+            self._stepDetails.keyword = self.keyword_M
+        elif self.Action == 'I':
             self._stepDetails.keyword = self.keyword_I
         elif self.Action == 'A':
             self._stepDetails.keyword = self.keyword_A
@@ -188,3 +229,7 @@ class T24TestStep(object):
         elif self.Action == 'S':
             self._stepDetails.keyword = self.keyword_S
             self._stepDetails.args[1] = self.TransactionID
+        elif self.Action == 'V':
+            self._stepDetails.keyword = self.keyword_V
+        elif self.Action == 'E':
+            self._stepDetails.keyword = self.keyword_E
