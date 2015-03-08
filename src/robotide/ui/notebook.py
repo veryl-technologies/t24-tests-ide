@@ -48,6 +48,7 @@ class NoteBook(fnb.FlatNotebook):
             self._uncloseable.append(tab)
 
         self.AddPage(tab, title.strip(), False, imageIndex)
+        # self.InsertPage(0,tab,title.strip(),False,imageIndex)
 
     def show_tab(self, tab):
         """Shows the notebook page that contains the given tab."""

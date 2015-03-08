@@ -2,6 +2,7 @@ __author__ = 'Zhelev'
 
 from robot.parsing.model import Step
 
+# todo - need to build test steps inheritance
 class T24TestStep(object):
 
     # consts
@@ -23,7 +24,12 @@ class T24TestStep(object):
 
     TestData = []
 
-    IsRealTestStep=False
+    # I, V specific properties
+    HowToHandleErrors = None
+    ExpectErrorContaining = None
+    HowToHandleOverrides = None
+
+    IsRealTestStep = False
 
     def __init__( self, stepPreActions, stepDetails ):
         # todo - stepPreActions are the keywords for initialization of variables etc that belong to the entire test step
@@ -75,29 +81,27 @@ class T24TestStep(object):
 
     def setCreateOrAmendOrValidateArgs(self, args):
         # Expected Format
-        # Create Or Amend T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling} {postVerifications}
+        # Create Or Amend T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling}
         # or
-        # Validate T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling} {postVerifications}
+        # Validate T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling}
+        #
+        #
+        # if {errorsHandling} contains ':' we have 2 parts - contains text for ex: 'Expect Error Containing:Unknown'
         #
         if not args:
             return
 
         if args.__len__() >= 1:
-            self.AppVersion=args[0]
+            self.AppVersion = args[0]
 
         if args.__len__() >= 2:
             self.setRecordFieldValues(args[1])
 
-        """ todo
         if args.__len__() >= 3:
-            setOverridesHandling(args[2])
+            self.HowToHandleOverrides = args[2]
 
-        if args.__len__() >=4:
-            setErrorsHandling(args[3])
-
-        if args.__len__() >=5:
-            setPostVerification(args[4])
-        """
+        if args.__len__() >= 4:
+            self._setHowToHandleErrors(args[3])
 
     def setAuthorizeArgs(self, args):
         # Expected Format
@@ -151,11 +155,11 @@ class T24TestStep(object):
 
     def subSteps(self):
         ls = []
-        if self._stepDetails:
-            ls.append(self._stepDetails)
         if self._stepPreActions:
             for pa in self._stepPreActions:
                 ls.append(pa)
+        if self._stepDetails:
+            ls.append(self._stepDetails)
 
         return ls
 
@@ -163,8 +167,18 @@ class T24TestStep(object):
     @staticmethod
     def createNew():
         stepDetails = Step('')
-        stepDetails.keyword='Create Or Amend T24 Record'
+        stepDetails.keyword='Create Or Amend T24 Record' # todo - we have to have generic test step as a new test step type
         stepDetails.args=['']
+
+        # todo - on new test step depending on the type we have to add some hints. For example for 'I' step:
+        """
+        // Add test data here. Format:
+        // [Field Name] := [Field Value]
+        // Example:
+        // NAME.1 := Jhon Smith
+        // Short Name := JhSmith
+        """
+
         return T24TestStep([],stepDetails)
 
     def getNameValueList(self, list):
@@ -223,6 +237,8 @@ class T24TestStep(object):
             self._stepDetails.keyword = self.keyword_M
         elif self.Action == 'I':
             self._stepDetails.keyword = self.keyword_I
+            self._setArg(2, self.HowToHandleOverrides)
+            self._setArg(3, self._getHowToHandleErrors())
         elif self.Action == 'A':
             self._stepDetails.keyword = self.keyword_A
             self._stepDetails.args[1] = self.TransactionID
@@ -231,5 +247,29 @@ class T24TestStep(object):
             self._stepDetails.args[1] = self.TransactionID
         elif self.Action == 'V':
             self._stepDetails.keyword = self.keyword_V
+            self._setArg(2, self.HowToHandleOverrides)
+            self._setArg(3, self._getHowToHandleErrors())
         elif self.Action == 'E':
             self._stepDetails.keyword = self.keyword_E
+
+    def _setArg(self, index, value):
+        while self._stepDetails.args.__len__() <= index:
+            self._stepDetails.args.append('')
+
+        self._stepDetails.args[index] = value
+
+    def _setHowToHandleErrors(self, arg):
+        pos = arg.find(':')
+        if pos < 0:
+            self.HowToHandleErrors = arg
+        else:
+            self.HowToHandleErrors = arg[:pos].strip()
+            self.ExpectErrorContaining = arg[(pos+1):].strip()
+
+    def _getHowToHandleErrors(self):
+        result = ''
+        if self.HowToHandleErrors:
+            result = result + self.HowToHandleErrors
+        if self.ExpectErrorContaining and len(self.ExpectErrorContaining) > 0:
+            result = result + ':' + self.ExpectErrorContaining
+        return result
