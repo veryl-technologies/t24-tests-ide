@@ -238,6 +238,7 @@ class ActionInfo(MenuInfo):
         if isinstance(self._icon_source, basestring):
             if self._icon_source.startswith("CUSTOM_"):
                 return ImageProvider().get_image_by_name(self._icon_source[len("CUSTOM_"):])
+
             return wx.ArtProvider.GetBitmap(getattr(wx, self._icon_source),
                                             wx.ART_TOOLBAR, (16, 16))
         return self._icon_source

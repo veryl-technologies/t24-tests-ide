@@ -237,6 +237,9 @@ class Plugin(object):
         """
         self.notebook.add_tab(tab, title, allow_closing)
 
+    def add_tab_with_img(self, tab, title, imageIndex, allow_closing=True):
+        self.notebook.add_tab_with_img(tab, title, imageIndex, allow_closing)
+
     def show_tab(self, tab):
         """Makes the ``tab`` added using `add_tab` visible."""
         self.notebook.show_tab(tab)

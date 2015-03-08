@@ -38,11 +38,11 @@ from .progress import LoadProgressObserver
 
 _menudata = """
 [Setup]
-!&Open Workspace | Open file containing tests | Ctrlcmd-O | ART_FILE_OPEN
-!&Repository | Open Repository with tests | Shift-Ctrlcmd-O | ART_FOLDER_OPEN
+!&Open Workspace | Open file containing tests | Ctrlcmd-O | CUSTOM_WORKSPACE_SETUP
+!&Repository | Open Repository with tests | Shift-Ctrlcmd-O | CUSTOM_REPOSITORY_PUSH
 ---
-&Save | Save selected datafile | Ctrlcmd-S | ART_FILE_SAVE
-!Save &All | Save all changes | Ctrlcmd-Shift-S | ART_FILE_SAVE_AS
+&Save | Save selected datafile | Ctrlcmd-S | CUSTOM_FILE_SAVE
+!Save &All | Save all changes | Ctrlcmd-Shift-S | CUSTOM_FILE_SAVE_ALL
 ---
 !E&xit | Exit RIDE | Ctrlcmd-Q
 

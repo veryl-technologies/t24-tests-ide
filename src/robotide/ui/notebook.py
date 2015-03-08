@@ -19,6 +19,8 @@ except ImportError:
 
 from robotide.publish import RideNotebookTabChanging, RideNotebookTabChanged
 
+from robotide.widgets.images import ImageList
+from robotide.widgets.images import ImageProvider
 
 class NoteBook(fnb.FlatNotebook):
 
@@ -29,6 +31,10 @@ class NoteBook(fnb.FlatNotebook):
         self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.OnTabClosing)
         self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CHANGING, self.OnTabChanging)
         self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnTabChanged)
+        imageList = ImageList(16,16)
+        imageList.add(ImageProvider().TEST_STEPS_LIST)# todo build good image list
+        self.SetImageList(imageList)
+
         self._tab_closing = False
         self._uncloseable = []
 
@@ -36,6 +42,12 @@ class NoteBook(fnb.FlatNotebook):
         if not allow_closing:
             self._uncloseable.append(tab)
         self.AddPage(tab, title.strip())
+
+    def add_tab_with_img(self, tab, title, imageIndex, allow_closing=True):
+        if not allow_closing:
+            self._uncloseable.append(tab)
+
+        self.AddPage(tab, title.strip(), False, imageIndex)
 
     def show_tab(self, tab):
         """Shows the notebook page that contains the given tab."""

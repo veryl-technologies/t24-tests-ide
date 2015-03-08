@@ -90,7 +90,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
             self._editor_component = T24TestStepsContainer(self.notebook, self)
             self._editor_component._eventListeners.append(self)
 
-            self.add_tab(self._editor_component, self.title, allow_closing=False)
+            self.add_tab_with_img(self._editor_component, self.title, 0, allow_closing=False)
             self.show_tab(self.title)
             self._refresh_timer = wx.Timer(self._editor_component)
             self._editor_component.Bind(wx.EVT_TIMER, self._on_timer)
@@ -506,17 +506,42 @@ class T24TestStepPanelBase ( wx.Panel ):
 		event.Skip()
 
     def createTestDataEditCtrl(self):
-        ctrl = wx.stc.StyledTextCtrl(self.m_panel3, wx.ID_ANY)
-
-        # todo - add stryles etc to the control
-        # todo - create simple syntax highlighter. For ex:
+        # Sample content
         # MNEMONIC:=SUPER001
         # SHORT.NAME:=Super Duper
         # Name.1:=Bab Jaga
         # City|ADDRESS:1:1=London
+        ctrl = wx.stc.StyledTextCtrl(self.m_panel3, wx.ID_ANY)
+
+        font = self._create_font()
+        face = font.GetFaceName()
+        size = font.GetPointSize()
+        ctrl.SetFont(font)
+        ctrl.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,"face:%s,size:%d" % (face, size))
+        ctrl.StyleSetSpec(2, "fore:#b22222") # firebrick
+        ctrl.SetScrollWidth(100)
+
+        # todo implement own lexer - For apps: NAME:=VALUES, enq: FIELD:LK:=...SEARCH VAL...
+
+        ctrl.SetLexer(stc.STC_LEX_PASCAL)
+        ctrl.StyleSetSpec(stc.STC_P_OPERATOR, "fore:#0000ff" )
+        # ctrl.StyleSetSpec(stc.STC_P_IDENTIFIER, "fore:#00ff00")
+
+        #ctrl.SetLexer(stc.STC_LEX_PROPERTIES)
+        #ctrl.StyleSetSpec(stc.STC_PROPS_ASSIGNMENT, "fore:#0000ff" )
+
+
 
         self._register_shortcuts(ctrl)
         return ctrl
+
+    def _create_font(self):
+        font=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        if not font.IsFixedWidth():
+            # fixed width fonts are typically a little bigger than their variable width
+            # peers so subtract one from the point size.
+            font = wx.Font(font.GetPointSize()-1, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        return font
 
     def _register_shortcuts(self, editor):
 

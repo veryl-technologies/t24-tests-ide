@@ -23,11 +23,12 @@ from robotide.utils import overrides
 from robotide.widgets import PopupCreator
 from editorcreator import EditorCreator
 
+""" THIS IS REMOVE FROM THE BELLOW:
+[File]
+&Save | Save current suite or resource | Ctrlcmd-S | CUSTOM_FILE_SAVE
+"""
 
 _EDIT = """
-[File]
-&Save | Save current suite or resource | Ctrlcmd-S | ART_FILE_SAVE
-
 [Edit]
 &Undo | Undo last modification | Ctrlcmd-Z
 &Redo | Redo modification | Ctrlcmd-Y

@@ -37,14 +37,26 @@ class ImageProvider(object):
         self.PROGICONS = self._load_prog_icons()
         self.REPORTIMG = self._load_image('report.png')
         self.REFRESH_ALL = self._load_image('database_refresh.png')
-        self.KW_SEARCH_ICON = self._load_image('kw_search_button.png')
-        self.TEST_SEARCH_ICON = self._load_image('test_search_button.png')
-        self.TOOLBAR_PLAY = self._load_image('control_play.png')
-        self.TOOLBAR_STOP = self._load_image('control_stop.png')
+        self.KW_SEARCH_ICON = self._load_image('tip_32_kw_search.png')
+        self.TEST_SEARCH_ICON = self._load_image('tip_32_test_search.png')
+        self.TOOLBAR_PLAY = self._load_image('tip_32_play.png')
+        self.TOOLBAR_STOP = self._load_image('tip_32_stop.png')
         self.TOOLBAR_PAUSE = self._load_image('control_pause.png')
         self.TOOLBAR_CONTINUE = self._load_image('control_play.png')
         self.TOOLBAR_NEXT = self._load_image('control_fastforward.png')
         self.SWITCH_FIELDS_ICON = self._load_image('switch.png')
+
+        self.TEST_STEPS_LIST = self._load_image('tip_32_test_steps_list.png')
+
+        self.WORKSPACE_SETUP = self._load_image('tip_32_folder.png')
+        self.FILE_SAVE = self._load_image('tip_32_save.png')
+        self.FILE_SAVE_ALL = self._load_image('tip_32_save_all.png')
+        self.REPOSITORY_PUSH = self._load_image('tip_32_repository_push.png')
+
+        self.GO_BACK = self._load_image('tip_32_back.png')
+        self.GO_FORWARD = self._load_image('tip_32_forward.png')
+
+
         self._build_icons()
 
     def _build_icons(self):
