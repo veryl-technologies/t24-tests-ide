@@ -14,11 +14,10 @@ class T24TestStep(object):
     keyword_V = 'Validate T24 Record'
 
     # members
-    _stepPreActions = None
     _stepDetails = None
 
     # properties
-    Action = ''
+    _Action = ''
     AppVersion = ''
     TransactionID = ''
 
@@ -32,42 +31,77 @@ class T24TestStep(object):
     IsRealTestStep = False
 
     def __init__( self, stepPreActions, stepDetails ):
-        # todo - stepPreActions are the keywords for initialization of variables etc that belong to the entire test step
-        self._stepPreActions = stepPreActions
+        # stepPreActions are the keywords for initialization of variables etc that belong to the entire test step
         self._stepDetails = stepDetails
-        self.IsRealTestStep = self.parseTestStep(stepDetails)
+        self.IsRealTestStep = self.parseTestStep(stepDetails, stepPreActions)
 
     @staticmethod
     def isT24TestStep(stepDetails):
-        return T24TestStep(None, stepDetails).Action != ''
+        return T24TestStep(None, stepDetails)._Action != ''
 
-    def parseTestStep(self, stepDetails):
+    def parseTestStep(self, stepDetails, stepPreActions = None):
         self._testDataPreAction = None
+        self._enquiryConstraintsPreAction = None
+
         # todo-parse the text and init the object
         # todo - this is just for the demo - real parsing must be implemented
         if stepDetails.keyword == self.keyword_M:
-            self.Action='M'
+            self._Action='M'
             self.setMenuArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_I:
-            self.Action='I'
-            self.setCreateOrAmendOrValidateArgs(stepDetails.args)
+            self._Action='I'
+            self.setCreateOrAmendOrValidateArgs(stepDetails.args, stepPreActions)
+            if self._testDataPreAction is None:
+                self.SetStepType(self._Action)  # this will create new _testDataPreAction
         elif stepDetails.keyword == self.keyword_A:
-            self.Action='A'
+            self._Action='A'
             self.setAuthorizeArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_S:
-            self.Action='S'
+            self._Action='S'
             self.setCheckRecordArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_E:
-            self.Action='E'
-            self.setEnquiryArgs(stepDetails.args)
+            self._Action='E'
+            self.setEnquiryArgs(stepDetails.args, stepPreActions)
+            if self._enquiryConstraintsPreAction is None:
+                self.SetStepType(self._Action)  # this will create new _testDataPreAction
         elif stepDetails.keyword == self.keyword_V:
-            self.Action='V'
-            self.setCreateOrAmendOrValidateArgs(stepDetails.args)
+            self._Action='V'
+            self.setCreateOrAmendOrValidateArgs(stepDetails.args, stepPreActions)
+            if self._testDataPreAction is None:
+                self.SetStepType(self._Action)  # this will create new _testDataPreAction
         else:
             # todo - we need to implement other types
             return False
 
         return True
+
+    def GetStepType(self):
+        return self._Action
+
+    def SetStepType(self, action):
+        self._Action = action
+
+        if self._Action == 'I' or self._Action == 'V':
+            self._enquiryConstraintsPreAction = None
+            if self._testDataPreAction is None:
+                testDataVarName = '@{testDataFields1}'  # todo - do we need to change the name or this is OK, next step will just override it
+                self._testDataPreAction = Step('')
+                self._testDataPreAction.keyword = 'Create List'
+                self._testDataPreAction.assign =[testDataVarName + '=']
+                self._testDataPreAction.args = []
+                self._setArg(1, testDataVarName)
+
+        elif self._Action == 'E':
+            self._testDataPreAction = None
+            if self._enquiryConstraintsPreAction is None:
+                enqVarName = '@{enquiryConstraints1}'  # todo - do we need to change the name or this is OK, next step will just override it
+                self._enquiryConstraintsPreAction = Step('')
+                self._enquiryConstraintsPreAction.keyword = 'Create List'
+                self._enquiryConstraintsPreAction.assign = [enqVarName + '=']
+                self._enquiryConstraintsPreAction.args = []
+                self._setArg(1, enqVarName)
+
+
 
     def setMenuArgs(self, args):
         # Expected Format
@@ -79,7 +113,7 @@ class T24TestStep(object):
         if args.__len__() >= 1:
             self.AppVersion=args[0]
 
-    def setCreateOrAmendOrValidateArgs(self, args):
+    def setCreateOrAmendOrValidateArgs(self, args, stepPreActions):
         # Expected Format
         # Create Or Amend T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling}
         # or
@@ -95,7 +129,7 @@ class T24TestStep(object):
             self.AppVersion = args[0]
 
         if args.__len__() >= 2:
-            self.setRecordFieldValues(args[1])
+            self.setRecordFieldValues(args[1], stepPreActions)
 
         if args.__len__() >= 3:
             self.HowToHandleOverrides = args[2]
@@ -130,7 +164,7 @@ class T24TestStep(object):
 
         # todo - rest of the arguments
 
-    def setEnquiryArgs(self, args):
+    def setEnquiryArgs(self, args, stepPreActions):
         # Expected Format
         # Execute T24 Enquiry {Enquiry Name} {constraints} {post filtering constraints} {action} {validation criterias}
         #
@@ -143,32 +177,50 @@ class T24TestStep(object):
         if args.__len__() >= 1:
             self.AppVersion=args[0]
 
+        if args.__len__() >= 2:
+            self.setEnquiryConstraints(args[1], stepPreActions)
+
         # todo rest of the arguments
 
-    def setRecordFieldValues(self, arg):
-        testDataList = self.findPreAction("Create List", arg)
+    def setRecordFieldValues(self, arg, stepPreActions):
+        testDataList = self.findPreAction(stepPreActions, "Create List", arg)
         if testDataList is None:
             return
 
         self._testDataPreAction = testDataList
         self.TestData = self.getNameValueList(testDataList.args)
 
+    def setEnquiryConstraints(self, arg, stepPreActions):
+        enqConstraintsList = self.findPreAction(stepPreActions, "Create List", arg)
+        if enqConstraintsList is None:
+            return
+
+        self._enquiryConstraintsPreAction = enqConstraintsList
+        self.TestData = self.getNameValueList(enqConstraintsList.args)# todo - we have to have different syntax for enquiries
+
     def subSteps(self):
         ls = []
-        if self._stepPreActions:
-            for pa in self._stepPreActions:
-                ls.append(pa)
+        for pa in self._getPreActions():
+            ls.append(pa)
         if self._stepDetails:
             ls.append(self._stepDetails)
 
         return ls
+
+    def _getPreActions(self):
+        if self._Action == 'I' or self._Action == 'V':
+            return [self._testDataPreAction]
+        elif self._Action == 'E':
+            return [self._enquiryConstraintsPreAction]
+
+        return []
 
     # create default step type
     @staticmethod
     def createNew():
         stepDetails = Step('')
         stepDetails.keyword='Create Or Amend T24 Record' # todo - we have to have generic test step as a new test step type
-        stepDetails.args=['']
+        stepDetails.args=[]
 
         # todo - on new test step depending on the type we have to add some hints. For example for 'I' step:
         """
@@ -199,24 +251,23 @@ class T24TestStep(object):
         return res;
 
     def applyTestDataChanges(self):
-        if not self._testDataPreAction:
-            # todo - we have to create it!!!
-            return
-
-        self._testDataPreAction.args = []
-
         # todo - we have to identify whether the test data is changed and if not this func must result false
         # todo - then the caller function will know whether this is a real change or not!
 
-        for td in self.TestData:
-           self._testDataPreAction.args.append('{}={}'.format(td[0],td[1]))
+        if self._Action == 'I' or self._Action == 'V':
+            self._testDataPreAction.args = []
+            for td in self.TestData:
+                self._testDataPreAction.args.append('{}={}'.format(td[0], td[1]))
 
+        elif self._Action == 'E':
+            self._enquiryConstraintsPreAction.args = []
+            # todo
 
-    def findPreAction(self, keyword, assign):
-        if self._stepPreActions is None:
+    def findPreAction(self, stepPreActions, keyword, assign):
+        if stepPreActions is None:
             return None
 
-        for pa in self._stepPreActions:
+        for pa in stepPreActions:
             # todo - this should be revised but currently work for:
             # @{fields1}=    Create List    NAME.1.1 = John    MNEMONIC = ${mnemonic}
             if pa.keyword == keyword and pa.assign is not None and pa.assign[0] == "{}=".format(assign):
@@ -227,36 +278,37 @@ class T24TestStep(object):
     def toString(self):
         # todo - this is just for the demo
         # todo - real implementation is needed
-        return self.Action + ' ' + self.AppVersion
+        return self._Action + ' ' + self.AppVersion
 
     def applyChanges(self):
         # todo - apply other changes also
-        self._stepDetails.args[0] = self.AppVersion
+        self._setArg(0, self.AppVersion)
 
-        if self.Action == 'M':
+        if self._Action == 'M':
             self._stepDetails.keyword = self.keyword_M
-        elif self.Action == 'I':
+        elif self._Action == 'I':
             self._stepDetails.keyword = self.keyword_I
             self._setArg(2, self.HowToHandleOverrides)
             self._setArg(3, self._getHowToHandleErrors())
-        elif self.Action == 'A':
+        elif self._Action == 'A':
             self._stepDetails.keyword = self.keyword_A
-            self._stepDetails.args[1] = self.TransactionID
-        elif self.Action == 'S':
+            self._setArg(1, self.TransactionID)
+        elif self._Action == 'S':
             self._stepDetails.keyword = self.keyword_S
-            self._stepDetails.args[1] = self.TransactionID
-        elif self.Action == 'V':
+            self._setArg(1, self.TransactionID)
+        elif self._Action == 'V':
             self._stepDetails.keyword = self.keyword_V
             self._setArg(2, self.HowToHandleOverrides)
             self._setArg(3, self._getHowToHandleErrors())
-        elif self.Action == 'E':
+        elif self._Action == 'E':
             self._stepDetails.keyword = self.keyword_E
 
     def _setArg(self, index, value):
         while self._stepDetails.args.__len__() <= index:
             self._stepDetails.args.append('')
 
-        self._stepDetails.args[index] = value
+        if value:
+            self._stepDetails.args[index] = value
 
     def _setHowToHandleErrors(self, arg):
         pos = arg.find(':')

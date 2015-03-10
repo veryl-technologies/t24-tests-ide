@@ -49,7 +49,7 @@ class TestStepEventListener:
     def onTestStepCreated(self, testStep, insertBeforeTestStep):
         pass
 
-    def onTestStepChanged(self, testStep):
+    def onTestStepChanged(self, testStep, oldSubSteps = None):
         pass
 
     def onTestStepDeleted(self, testStep):
@@ -74,7 +74,19 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
 
         self.tree.get_selected_datafile_controller().mark_dirty()
 
-    def onTestStepChanged(self, testStep):
+    def onTestStepChanged(self, testStep, oldSubSteps = None):
+        if oldSubSteps and oldSubSteps.__len__() > 1:
+            # remove old pre steps
+            for oldSubStep in oldSubSteps[:oldSubSteps.__len__() - 1]:
+                self._current_test_case.steps.remove(oldSubStep)
+
+        if oldSubSteps and testStep.subSteps().__len__() > 1:
+            # insert new pre steps
+            idx = self._current_test_case.steps.index(testStep.subSteps()[testStep.subSteps().__len__() - 1])
+            for newPreStep in testStep.subSteps()[:testStep.subSteps().__len__() - 1]:
+                self._current_test_case.steps.insert(idx, newPreStep)
+                idx+=1
+
         self.tree.get_selected_datafile_controller().mark_dirty()
 
     def onTestStepDeleted(self, testStep):
@@ -293,10 +305,10 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
         # recreate self
         self.setTestCase(self._testCaseTreeNode, self._tree)
 
-    def fireOnTestStepChangeEvent(self, testStep):
+    def fireOnTestStepChangeEvent(self, testStep, oldSubSteps = None):
         if not not self._eventListeners:
             for el in self._eventListeners:
-                el.onTestStepChanged(testStep)
+                el.onTestStepChanged(testStep, oldSubSteps)
 
     def fireOnTestStepDeleteEvent(self, testStep):
         if not not self._eventListeners:
@@ -607,10 +619,13 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
     def onActionChanged( self, event ):
         if self._testStep:
-            oldAction = self._testStep.Action
-            self._testStep.Action = self.m_choiceTestStepAction.GetStringSelection()
+            oldAction = self._testStep.GetStepType()
+            newAction = self.m_choiceTestStepAction.GetStringSelection()
+            oldSubSteps = self._testStep.subSteps()
 
-            if (self._testStep.Action == 'M' and oldAction != 'M') or (self._testStep.Action != 'M' and oldAction == 'M'):
+            self._testStep.SetStepType(newAction)
+
+            if (newAction == 'M' and oldAction != 'M') or (newAction != 'M' and oldAction == 'M'):
                 # incompatible values for the transaction type / app version
                 self._testStep.AppVersion = ''
                 self.m_txtTestStepTransaction.SetValue('')
@@ -618,7 +633,8 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStep.applyChanges()
             self.updateUI()
             self.Layout()
-            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep, oldSubSteps)
 
     def onTransactionChanged( self, event ):
         if self._testStep:
@@ -661,7 +677,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         if self._testStep is None:
             return
 
-        self.m_choiceTestStepAction.SetSelection(self.m_choiceTestStepAction.FindString(self._testStep.Action))
+        self.m_choiceTestStepAction.SetSelection(self.m_choiceTestStepAction.FindString(self._testStep.GetStepType()))
         self.m_txtTestStepTransaction.SetValue(self._testStep.AppVersion)
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
         if self._testStep.HowToHandleErrors and len(self._testStep.HowToHandleErrors) > 0:
@@ -679,24 +695,25 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerTestStepUpDown.ShowItems(False)
             self.m_sizerTestStepContents.ShowItems(False)
             self.m_panelTestStepContents.Hide()
-        elif self._testStep.Action == 'M':
+            self.m_btnNewBefore.SetToolTipString('Add new test step')
+        elif self._testStep.GetStepType() == 'M':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
-        elif self._testStep.Action == 'I':
-            self.m_sizerTransactionID.ShowItems(False)
-            self.m_sizerTestData.ShowItems(True)
-            self.setTestData(self._testStep.TestData)
-        elif self._testStep.Action == 'A':
-            self.m_sizerTransactionID.ShowItems(True)
-            self.m_sizerTestData.ShowItems(False)
-        elif self._testStep.Action == 'S':
-            self.m_sizerTransactionID.ShowItems(True)
-            self.m_sizerTestData.ShowItems(False)
-        elif self._testStep.Action == 'V':
+        elif self._testStep.GetStepType() == 'I':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
             self.setTestData(self._testStep.TestData)
-        elif self._testStep.Action == 'E':
+        elif self._testStep.GetStepType() == 'A':
+            self.m_sizerTransactionID.ShowItems(True)
+            self.m_sizerTestData.ShowItems(False)
+        elif self._testStep.GetStepType() == 'S':
+            self.m_sizerTransactionID.ShowItems(True)
+            self.m_sizerTestData.ShowItems(False)
+        elif self._testStep.GetStepType() == 'V':
+            self.m_sizerTransactionID.ShowItems(False)
+            self.m_sizerTestData.ShowItems(True)
+            self.setTestData(self._testStep.TestData)
+        elif self._testStep.GetStepType() == 'E':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
             # todo - we have to set the same text box here but processing enquiry constraints, post filters...
