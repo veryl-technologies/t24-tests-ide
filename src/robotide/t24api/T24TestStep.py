@@ -6,6 +6,7 @@ from robot.parsing.model import Step
 class T24TestStep(object):
 
     # consts
+    keyword_L = 'T24 Login'
     keyword_M = 'Execute T24 Menu Command'
     keyword_I = 'Create Or Amend T24 Record'
     keyword_A = 'Authorize T24 Record'
@@ -45,7 +46,10 @@ class T24TestStep(object):
 
         # todo-parse the text and init the object
         # todo - this is just for the demo - real parsing must be implemented
-        if stepDetails.keyword == self.keyword_M:
+        if stepDetails.keyword == self.keyword_L:
+            self._Action='Login'
+            self.setLoginArgs(stepDetails.args)
+        elif stepDetails.keyword == self.keyword_M:
             self._Action='M'
             self.setMenuArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_I:
@@ -102,6 +106,18 @@ class T24TestStep(object):
                 self._setArg(1, enqVarName)
 
 
+    def setLoginArgs(self, args):
+        # Expected Format
+        # Execute T24 Login {user_group}
+        #
+        # the {user_group} can be INPUTTER, AUTHORISER, AUTHORISER.2...
+        #
+
+        if not args:
+            return
+
+        if args.__len__() >= 1:
+            self.AppVersion=args[0]
 
     def setMenuArgs(self, args):
         # Expected Format
@@ -217,10 +233,10 @@ class T24TestStep(object):
 
     # create default step type
     @staticmethod
-    def createNew():
+    def createNew(action):
         stepDetails = Step('')
-        stepDetails.keyword='Create Or Amend T24 Record' # todo - we have to have generic test step as a new test step type
-        stepDetails.args=[]
+        stepDetails.keyword = T24TestStep.getKeywordFromAction(action)
+        stepDetails.args = []
 
         # todo - on new test step depending on the type we have to add some hints. For example for 'I' step:
         """
@@ -232,6 +248,25 @@ class T24TestStep(object):
         """
 
         return T24TestStep([],stepDetails)
+
+    @staticmethod
+    def getKeywordFromAction(action):
+        if action == 'Login':
+            return 'T24 Login'
+        elif action == 'M':
+            return 'Execute T24 Menu Command'
+        elif action == 'I':
+            return 'Create Or Amend T24 Record'
+        elif action == 'A':
+            return 'Authorize T24 Record'
+        elif action == 'S':
+            return 'Check T24 Record Exists'
+        elif action == 'E':
+            return 'Execute T24 Enquiry'
+        elif action == 'V':
+            return 'Validate T24 Record'
+        else: # todo - we have to have generic test step as a new test step type
+            return 'T24 Login'
 
     def getNameValueList(self, list):
         if list is None:
@@ -284,7 +319,9 @@ class T24TestStep(object):
         # todo - apply other changes also
         self._setArg(0, self.AppVersion)
 
-        if self._Action == 'M':
+        if self._Action == 'Login':
+            self._stepDetails.keyword = self.keyword_L
+        elif self._Action == 'M':
             self._stepDetails.keyword = self.keyword_M
         elif self._Action == 'I':
             self._stepDetails.keyword = self.keyword_I

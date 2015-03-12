@@ -7,9 +7,9 @@ Resource          custom.robot
 Enter an Account
     ${mnemonic}=    Get Unique Mnemonic
     @{fields1}=    Create List    NAME.1.1=John    MNEMONIC=${mnemonic}    Short Name=Babchko
-    Create Or Amend T24 Record    SUPER,DUPER    @{fields1}
+    Create Or Amend T24 Record    SUPER,DUPER    @{testDataFields1}    Fail    Expect Error Containing:Da be da
     Authorize T24 Record    CUSTOMER,IND    @{fields1}    Accept All Overrides    ${EMPTY}    ${EMPTY}
-    Create Or Amend T24 Record    ${EMPTY}
+    Execute T24 Menu Command    sfsdfsfd
     Check T24 Record Exists    ACCOUNT,FR    \    ${EMPTY}    ${EMPTY}    ${EMPTY}    ${EMPTY}
     Check T24 Record Exists    ACCOUNT,FR    ZZZZ    Verfiy All Input Values Are Properly Saved
 
@@ -26,3 +26,11 @@ Enter an Account (verbose)
     Enter T24 Text Field Value    CATEGORY    Nostro
     Enter T24 Text Field Value    CURRENCY    USD
     Get Result Of Attempt to Complete T24 Transaction
+
+Very New Test Case
+    @{testDataFields1}=    Create List    t=2
+    Create Or Amend T24 Record    SUPER    @{testDataFields1}    \    Expect Error Containing:ghfhf
+    Check T24 Record Exists    SUPER    @{testDataFields1}    \    ${EMPTY}
+    @{testDataFields1}=    Create List
+    Create Or Amend T24 Record    \    @{testDataFields1}    \    ${EMPTY}
+    Authorize T24 Record    123    @{testDataFields1}    \    ${EMPTY}

@@ -55,6 +55,12 @@ class TestStepEventListener:
     def onTestStepDeleted(self, testStep):
         pass
 
+    def onTestStepMoveUp(self, testStep):
+        pass
+
+    def onTestStepMoveDown(self, testStep):
+        pass
+
 class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
     title = 'Test Steps'
 
@@ -95,6 +101,51 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
                 self._current_test_case.steps.remove(subStep)
 
         self.tree.get_selected_datafile_controller().mark_dirty()
+
+    def onTestStepMoveUp(self, testStep):
+        if self._current_test_case:
+            firsSubStep = testStep.subSteps()[0]
+            firsSubStepIdx = self._current_test_case.steps.index(firsSubStep)
+            if firsSubStepIdx > 0:
+                previousStepIndex = firsSubStepIdx - 1;
+                while(previousStepIndex > 0 and not T24TestStep.isT24TestStep(self._current_test_case.steps[previousStepIndex - 1]) ):
+                    previousStepIndex -= 1
+
+                self.onTestStepDeleted(testStep)
+
+                for subStep in testStep.subSteps():
+                    self._current_test_case.steps.insert(previousStepIndex, subStep)
+                    previousStepIndex += 1
+
+                self.tree.get_selected_datafile_controller().mark_dirty()
+
+                return True
+
+        return False
+
+    def onTestStepMoveDown(self, testStep):
+        if self._current_test_case:
+            lastSubStep = testStep.subSteps()[testStep.subSteps().__len__() - 1]
+            lastSubStepIdx = self._current_test_case.steps.index(lastSubStep)
+            if lastSubStepIdx < (self._current_test_case.steps.__len__() - 1):
+                nextStepIndex = lastSubStepIdx + 1;
+                while(nextStepIndex < self._current_test_case.steps.__len__() and not T24TestStep.isT24TestStep(self._current_test_case.steps[nextStepIndex]) ):
+                    nextStepIndex += 1
+
+                self.onTestStepDeleted(testStep)
+
+                nextStepIndex -= testStep.subSteps().__len__()
+                nextStepIndex += 1
+
+                for subStep in testStep.subSteps():
+                    self._current_test_case.steps.insert(nextStepIndex, subStep)
+                    nextStepIndex += 1
+
+                self.tree.get_selected_datafile_controller().mark_dirty()
+
+                return True
+
+        return False
 
     @property
     def _editor(self):
@@ -295,8 +346,8 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
     def _createEndDummyTestStepPanel(self):
         return T24TestStepPanel(self.m_scrolledWindow2, self, None)
 
-    def fireOnNewTestStepBeforeEvent(self, insertBeforeTestStep):
-        testStep = T24TestStep.createNew()
+    def fireOnNewTestStepBeforeEvent(self, insertBeforeTestStep, stepAction):
+        testStep = T24TestStep.createNew(stepAction)
 
         if self._eventListeners:
             for el in self._eventListeners:
@@ -314,6 +365,28 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
         if not not self._eventListeners:
             for el in self._eventListeners:
                 el.onTestStepDeleted(testStep)
+
+    def fireOnTestStepMoveUpEvent(self, testStep):
+        moved = False
+        if self._eventListeners:
+            for el in self._eventListeners:
+                if el.onTestStepMoveUp(testStep):
+                    moved = True
+
+        if moved:
+            # recreate self
+            self.setTestCase(self._testCaseTreeNode, self._tree)
+
+    def fireOnTestStepMoveDownEvent(self, testStep):
+        moved = False
+        if self._eventListeners:
+            for el in self._eventListeners:
+                if el.onTestStepMoveDown(testStep):
+                    moved = True
+
+        if moved:
+            # recreate self
+            self.setTestCase(self._testCaseTreeNode, self._tree)
 
 ###########################################################################
 
@@ -333,6 +406,30 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_btnNewBefore.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHTTEXT ) )
         self.m_btnNewBefore.SetBackgroundColour( wx.Colour( 0, 128, 0 ) )
         self.m_btnNewBefore.SetToolTipString( u"Create and insert new test step before current one" )
+
+        self.m_menuNewTestStepBefore = wx.Menu()
+        self.m_menuItemNewLoginStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Login Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewLoginStepBefore )
+
+        self.m_menuItemNewMenuStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Menu Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewMenuStepBefore )
+
+        self.m_menuItemNewInputStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Input Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewInputStepBefore )
+
+        self.m_menuItemNewAuthorizeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Authorize Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewAuthorizeStepBefore )
+
+        self.m_menuItemNewSeeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&See Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewSeeStepBefore )
+
+        self.m_menuItemNewEnquiryStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Enquiry", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewEnquiryStepBefore )
+
+        self.m_menuItemNewValidateStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Validate", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewValidateStepBefore )
+
+        self.m_btnNewBefore.Bind( wx.EVT_RIGHT_DOWN, self.m_btnNewBeforeOnContextMenu )
 
         bSizer111.Add( self.m_btnNewBefore, 0, wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
 
@@ -377,7 +474,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer91.Add( self.lblTestStepIndex, 0, wx.ALL, 8 )
 
-        m_choiceTestStepActionChoices = [ u"M", u"E", u"I", u"A", u"S", u"V" ]
+        m_choiceTestStepActionChoices = [ u"Login", u"M", u"E", u"I", u"A", u"S", u"V" ]
         self.m_choiceTestStepAction = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 60,-1 ), m_choiceTestStepActionChoices, 0 )
         self.m_choiceTestStepAction.SetSelection( 0 )
         self.m_choiceTestStepAction.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
@@ -481,7 +578,14 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.Layout()
 
         # Connect Events
-        self.m_btnNewBefore.Bind( wx.EVT_BUTTON, self.onNewTestStepBefore )
+        self.m_btnNewBefore.Bind( wx.EVT_LEFT_UP, self.onNewTestStepBefore )
+        self.Bind( wx.EVT_MENU, self.onInsertLoginStep, id = self.m_menuItemNewLoginStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertMenuStep, id = self.m_menuItemNewMenuStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertInputStep, id = self.m_menuItemNewInputStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertAuthorizeStep, id = self.m_menuItemNewAuthorizeStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertSeeStep, id = self.m_menuItemNewSeeStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertEnquiryStep, id = self.m_menuItemNewEnquiryStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertValidateStep, id = self.m_menuItemNewValidateStepBefore.GetId() )
         self.m_btnUp.Bind( wx.EVT_BUTTON, self.onBtnMoveUp )
         self.m_btnDown.Bind( wx.EVT_BUTTON, self.onBtnMoveDown )
         self.m_choiceTestStepAction.Bind( wx.EVT_CHOICE, self.onActionChanged )
@@ -501,12 +605,32 @@ class T24TestStepPanelBase ( wx.Panel ):
     def onNewTestStepBefore( self, event ):
         event.Skip()
 
+    def onInsertLoginStep( self, event ):
+        event.Skip()
+
+    def onInsertMenuStep( self, event ):
+        event.Skip()
+
+    def onInsertInputStep( self, event ):
+        event.Skip()
+
+    def onInsertAuthorizeStep( self, event ):
+        event.Skip()
+
+    def onInsertSeeStep( self, event ):
+        event.Skip()
+
+    def onInsertEnquiryStep( self, event ):
+        event.Skip()
+
+    def onInsertValidateStep( self, event ):
+        event.Skip()
+
     def onBtnMoveUp( self, event ):
         event.Skip()
 
     def onBtnMoveDown( self, event ):
         event.Skip()
-
 
     def onActionChanged( self, event ):
         event.Skip()
@@ -531,6 +655,11 @@ class T24TestStepPanelBase ( wx.Panel ):
 
     def onExpectedErrorContainingTextChanged( self, event ):
         event.Skip()
+
+    def m_btnNewBeforeOnContextMenu( self, event ):
+        self.m_btnNewBefore.PopupMenu( self.m_menuNewTestStepBefore, event.GetPosition() )
+
+    # PASTE UI TILL HERE
 
     def createTestDataEditCtrl(self):
         # Sample content
@@ -696,6 +825,10 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerTestStepContents.ShowItems(False)
             self.m_panelTestStepContents.Hide()
             self.m_btnNewBefore.SetToolTipString('Add new test step')
+        elif self._testStep.GetStepType() == 'Login':
+            # todo - hide the app version and add drop down having all of the user groups to login with
+            self.m_sizerTransactionID.ShowItems(False)
+            self.m_sizerTestData.ShowItems(False)
         elif self._testStep.GetStepType() == 'M':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
@@ -822,12 +955,32 @@ class T24TestStepPanel (T24TestStepPanelBase):
             container.fireOnTestStepDeleteEvent(testStep)
 
     def onNewTestStepBefore( self, event ):
-        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep)
+        # self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep)
+        self.m_btnNewBeforeOnContextMenu(event)
+
+    def onInsertLoginStep( self, event ):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Login')
+
+    def onInsertMenuStep( self, event ):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'M')
+
+    def onInsertInputStep( self, event ):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'I')
+
+    def onInsertAuthorizeStep( self, event ):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'A')
+
+    def onInsertSeeStep( self, event ):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'S')
+
+    def onInsertEnquiryStep( self, event ):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'E')
+
+    def onInsertValidateStep( self, event ):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'V')
 
     def onBtnMoveUp( self, event ):
-        T24TestStepPanel.Warn(self, "TODO: Not implemented")
-        self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+        self._testStepsContainer.fireOnTestStepMoveUpEvent(self._testStep)
 
     def onBtnMoveDown( self, event ):
-        T24TestStepPanel.Warn(self, "TODO: Not implemented")
-        self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+        self._testStepsContainer.fireOnTestStepMoveDownEvent(self._testStep)
