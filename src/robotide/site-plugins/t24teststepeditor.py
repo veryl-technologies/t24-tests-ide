@@ -26,8 +26,8 @@ from robotide.widgets.label import Label
 
 from robotide.action.actioninfo import ActionInfo
 
-from robotide.t24api.T24TestStep import T24TestStep
-
+from robotide.tip_api.T24TestStep import T24TestStep
+from robotide.tip_api.TipServerResources import TipServerResources
 
 import wx
 import wx.xrc
@@ -393,7 +393,7 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 class T24TestStepPanelBase ( wx.Panel ):
 
     def __init__( self, parent ):
-        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 683,281 ), style = wx.TAB_TRAVERSAL )
+        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 683,412 ), style = wx.TAB_TRAVERSAL )
 
         bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 
@@ -481,6 +481,18 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer91.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
 
+        self.m_lblLoginUsingUserOfGroup = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"using user of group", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE )
+        self.m_lblLoginUsingUserOfGroup.Wrap( -1 )
+        self.m_lblLoginUsingUserOfGroup.SetFont( wx.Font( 10, 74, 93, 92, False, "Arial" ) )
+        self.m_lblLoginUsingUserOfGroup.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_BTNTEXT ) )
+
+        bSizer91.Add( self.m_lblLoginUsingUserOfGroup, 0, wx.TOP|wx.BOTTOM, 9 )
+
+        m_choiceLoginUsingUserOfGroupChoices = []
+        self.m_choiceLoginUsingUserOfGroup = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceLoginUsingUserOfGroupChoices, 0 )
+        self.m_choiceLoginUsingUserOfGroup.SetSelection( 0 )
+        bSizer91.Add( self.m_choiceLoginUsingUserOfGroup, 0, wx.ALL, 5 )
+
         self.m_txtTestStepTransaction = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 514,-1 ), 0 )
         bSizer91.Add( self.m_txtTestStepTransaction, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
@@ -529,6 +541,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerTestDataCtrlHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Test Data" ), wx.VERTICAL )
 
+
         # WARNING: wxPython code generation isn't supported for this widget yet.
         self.m_editTestData = self.createTestDataEditCtrl() #wx.Window( self.m_panelTestStepContents )
         self.m_sizerTestDataCtrlHolder.Add( self.m_editTestData, 1, wx.EXPAND |wx.ALL, 5 )
@@ -538,15 +551,15 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer13 = wx.BoxSizer( wx.VERTICAL )
 
-        sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"How to Handle Overrides" ), wx.HORIZONTAL )
+        self.m_sizerHandleOverrides = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"How to Handle Overrides" ), wx.HORIZONTAL )
 
         m_choiceHowToHandleOverridesChoices = [ u"Accept All", u"Fail" ]
         self.m_choiceHowToHandleOverrides = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceHowToHandleOverridesChoices, 0 )
         self.m_choiceHowToHandleOverrides.SetSelection( 0 )
-        sbSizer2.Add( self.m_choiceHowToHandleOverrides, 0, wx.ALIGN_RIGHT, 5 )
+        self.m_sizerHandleOverrides.Add( self.m_choiceHowToHandleOverrides, 0, wx.ALIGN_RIGHT, 5 )
 
 
-        bSizer13.Add( sbSizer2, 0, wx.ALIGN_RIGHT, 5 )
+        bSizer13.Add( self.m_sizerHandleOverrides, 0, wx.ALIGN_RIGHT, 5 )
 
         sbSizer21 = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"How to Handle Errors" ), wx.VERTICAL )
 
@@ -589,6 +602,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_btnUp.Bind( wx.EVT_BUTTON, self.onBtnMoveUp )
         self.m_btnDown.Bind( wx.EVT_BUTTON, self.onBtnMoveDown )
         self.m_choiceTestStepAction.Bind( wx.EVT_CHOICE, self.onActionChanged )
+        self.m_choiceLoginUsingUserOfGroup.Bind( wx.EVT_CHOICE, self.onLoginUsingUserOfGroupChanged )
         self.m_txtTestStepTransaction.Bind( wx.EVT_TEXT, self.onTransactionChanged )
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
         self.m_txtTransactionID.Bind( wx.EVT_TEXT, self.onTransactionIDChanged )
@@ -633,6 +647,9 @@ class T24TestStepPanelBase ( wx.Panel ):
         event.Skip()
 
     def onActionChanged( self, event ):
+        event.Skip()
+
+    def onLoginUsingUserOfGroupChanged( self, event ):
         event.Skip()
 
     def onTransactionChanged( self, event ):
@@ -777,6 +794,12 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
+    def onLoginUsingUserOfGroupChanged(self, event):
+        if self._testStep:
+            self._testStep.AppVersion = self.m_choiceLoginUsingUserOfGroup.GetStringSelection()
+            self._testStep.applyChanges()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
     def onEditTestDataKeyUp( self, event ):
         if self._testStep:
             self._testStep.TestData = self.getTestDataFromUI()
@@ -807,7 +830,13 @@ class T24TestStepPanel (T24TestStepPanelBase):
             return
 
         self.m_choiceTestStepAction.SetSelection(self.m_choiceTestStepAction.FindString(self._testStep.GetStepType()))
-        self.m_txtTestStepTransaction.SetValue(self._testStep.AppVersion)
+
+        if self._testStep.GetStepType() == 'Login':
+            self.setLoginUsingUserOfGroupChoices()
+            self.m_choiceLoginUsingUserOfGroup.SetStringSelection(self._testStep.AppVersion)
+        else:
+            self.m_txtTestStepTransaction.SetValue(self._testStep.AppVersion)
+
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
         if self._testStep.HowToHandleErrors and len(self._testStep.HowToHandleErrors) > 0:
             self.m_choiceHowToHandleErrors.SetStringSelection(self._testStep.HowToHandleErrors)
@@ -817,6 +846,11 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_choiceHowToHandleOverrides.SetStringSelection(self._testStep.HowToHandleOverrides)
 
     def updateUI(self):
+
+        self.m_lblLoginUsingUserOfGroup.Hide()
+        self.m_choiceLoginUsingUserOfGroup.Hide()
+        self.m_txtTestStepTransaction.Show()
+
         if self._testStep is None:
             # hide all
             self.m_sizerTransactionID.ShowItems(False)
@@ -826,7 +860,9 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_panelTestStepContents.Hide()
             self.m_btnNewBefore.SetToolTipString('Add new test step')
         elif self._testStep.GetStepType() == 'Login':
-            # todo - hide the app version and add drop down having all of the user groups to login with
+            self.m_lblLoginUsingUserOfGroup.Show()
+            self.m_choiceLoginUsingUserOfGroup.Show()
+            self.m_txtTestStepTransaction.Hide()
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
         elif self._testStep.GetStepType() == 'M':
@@ -835,6 +871,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         elif self._testStep.GetStepType() == 'I':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
+            self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Test Data')
             self.setTestData(self._testStep.TestData)
         elif self._testStep.GetStepType() == 'A':
             self.m_sizerTransactionID.ShowItems(True)
@@ -845,14 +882,16 @@ class T24TestStepPanel (T24TestStepPanelBase):
         elif self._testStep.GetStepType() == 'V':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
+            self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Test Data')
             self.setTestData(self._testStep.TestData)
         elif self._testStep.GetStepType() == 'E':
             self.m_sizerTransactionID.ShowItems(False)
-            self.m_sizerTestData.ShowItems(False)
-            # todo - we have to set the same text box here but processing enquiry constraints, post filters...
+            self.m_sizerTestData.ShowItems(True)
+            self.m_sizerHandleOverrides.ShowItems(False)
+            self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Enquiry Constraints')
             self.setTestData(self._testStep.TestData)
 
-        # todo - rest of cases
+        #todo - rest of test cases. It would be good to add generic test step or sth like that
         else:
             # self.m_lblTransID.SetLabel('TODO Not Implemented')
             self.m_sizerTransactionID.ShowItems(False)
@@ -868,6 +907,10 @@ class T24TestStepPanel (T24TestStepPanelBase):
         self.m_panelTestStepContents.Layout()
         self.Layout()
 
+    def setLoginUsingUserOfGroupChoices(self):
+        self.m_choiceLoginUsingUserOfGroup.Clear()
+        for userGroup in TipServerResources.getUserGroups():
+            self.m_choiceLoginUsingUserOfGroup.Append(userGroup)
 
     def setTestData(self, testData):
 
