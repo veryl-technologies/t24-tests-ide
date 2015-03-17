@@ -29,6 +29,8 @@ class T24TestStep(object):
     ExpectErrorContaining = None
     HowToHandleOverrides = None
 
+    EnquiryAction = None
+
     IsRealTestStep = False
 
     def __init__( self, stepPreActions, stepDetails ):
@@ -182,7 +184,7 @@ class T24TestStep(object):
 
     def setEnquiryArgs(self, args, stepPreActions):
         # Expected Format
-        # Execute T24 Enquiry {Enquiry Name} {constraints} {post filtering constraints} {action} {validation criterias}
+        # Execute T24 Enquiry {Enquiry Name} {constraints - post & pre} {action} {validation criterias}
         #
         # {action} can be real enquiry action or 'Check Values'
         #
@@ -195,6 +197,9 @@ class T24TestStep(object):
 
         if args.__len__() >= 2:
             self.setEnquiryConstraints(args[1], stepPreActions)
+
+        if args.__len__() >= 3:
+            self.EnquiryAction = args[2]
 
         # todo rest of the arguments
 
@@ -339,6 +344,7 @@ class T24TestStep(object):
             self._setArg(3, self._getHowToHandleErrors())
         elif self._Action == 'E':
             self._stepDetails.keyword = self.keyword_E
+            self._setArg(2, self.EnquiryAction)
 
     def _setArg(self, index, value):
         while self._stepDetails.args.__len__() <= index:

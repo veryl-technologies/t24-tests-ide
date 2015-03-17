@@ -244,7 +244,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
 
 
 ###########################################################################
-
+"""
 class T24TestStepsContainerBase ( wx.Panel ):
 
     def __init__( self, parent ):
@@ -255,6 +255,10 @@ class T24TestStepsContainerBase ( wx.Panel ):
         self.m_scrolledWindow2 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
         self.m_scrolledWindow2.SetScrollRate( 5, 5 )
         self.m_sizerTestStepsContainer = wx.BoxSizer( wx.VERTICAL )
+        #self.m_sizerTestStepsContainer = wx.FlexGridSizer( 0, 1, 0, 0 )
+        #self.m_sizerTestStepsContainer.AddGrowableCol( 0 )
+        #self.m_sizerTestStepsContainer.SetFlexibleDirection( wx.BOTH )
+        #self.m_sizerTestStepsContainer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
 
         self.m_scrolledWindow2.SetSizer( self.m_sizerTestStepsContainer )
@@ -268,7 +272,33 @@ class T24TestStepsContainerBase ( wx.Panel ):
 
     def __del__( self ):
         pass
+"""
+class T24TestStepsContainerBase ( wx.Panel ):
 
+    def __init__( self, parent ):
+        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 500,300 ), style = wx.TAB_TRAVERSAL )
+
+        bSizer8 = wx.BoxSizer( wx.VERTICAL )
+
+        self.m_scrolledWindow2 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL )
+        self.m_scrolledWindow2.SetScrollRate( 5, 5 )
+        self.m_sizerTestStepsContainer = wx.FlexGridSizer( 0, 1, 0, 0 )
+        self.m_sizerTestStepsContainer.AddGrowableCol( 0 )
+        self.m_sizerTestStepsContainer.SetFlexibleDirection( wx.BOTH )
+        self.m_sizerTestStepsContainer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_ALL )
+
+
+        self.m_scrolledWindow2.SetSizer( self.m_sizerTestStepsContainer )
+        self.m_scrolledWindow2.Layout()
+        self.m_sizerTestStepsContainer.Fit( self.m_scrolledWindow2 )
+        bSizer8.Add( self.m_scrolledWindow2, 1, wx.ALL|wx.EXPAND, 5 )
+
+
+        self.SetSizer( bSizer8 )
+        self.Layout()
+
+    def __del__( self ):
+        pass
 
 class T24TestStepsContainer(T24TestStepsContainerBase):
 
@@ -301,8 +331,9 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
             self.Thaw()
 
     def createTestStepsControls(self, testSteps):
-        if not not self.m_sizerTestStepsContainer.Children:
-            self.m_sizerTestStepsContainer.DeleteWindows()
+        #if not not self.m_sizerTestStepsContainer.Children:
+        #    self.m_sizerTestStepsContainer.DeleteWindows()
+        self.m_sizerTestStepsContainer.Clear(True)
 
         stepPreActions = []
 
@@ -325,7 +356,8 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 
             self.m_scrolledWindow2.SetSizer(self.m_sizerTestStepsContainer)
             self.m_scrolledWindow2.Layout()
-            self.m_sizerTestStepsContainer.Fit( self.m_scrolledWindow2 )
+
+            self.m_sizerTestStepsContainer.FitInside( self.m_scrolledWindow2 )
             self.m_sizerTestStepsContainer.Layout()
 
             self.Layout()
@@ -361,6 +393,13 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
             for el in self._eventListeners:
                 el.onTestStepChanged(testStep, oldSubSteps)
 
+        if oldSubSteps:
+            self.m_scrolledWindow2.Layout()
+            #self.m_sizerTestStepsContainer.Fit( self.m_scrolledWindow2 )
+            self.m_sizerTestStepsContainer.FitInside(self.m_scrolledWindow2)
+            self.m_sizerTestStepsContainer.Layout()
+            self.Layout()
+
     def fireOnTestStepDeleteEvent(self, testStep):
         if not not self._eventListeners:
             for el in self._eventListeners:
@@ -393,8 +432,8 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 class T24TestStepPanelBase ( wx.Panel ):
 
     def __init__( self, parent ):
-        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 683,412 ), style = wx.TAB_TRAVERSAL )
-
+        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.TAB_TRAVERSAL )
+        # wx.Size(683,375)
         bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 
         bSizer10 = wx.BoxSizer( wx.VERTICAL )
@@ -539,6 +578,8 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerTestData = wx.BoxSizer( wx.HORIZONTAL )
 
+        bSizer14 = wx.BoxSizer( wx.VERTICAL )
+
         self.m_sizerTestDataCtrlHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Test Data" ), wx.VERTICAL )
 
 
@@ -547,7 +588,19 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_sizerTestDataCtrlHolder.Add( self.m_editTestData, 1, wx.EXPAND |wx.ALL, 5 )
 
 
-        self.m_sizerTestData.Add( self.m_sizerTestDataCtrlHolder, 1, wx.LEFT, 5 )
+        bSizer14.Add( self.m_sizerTestDataCtrlHolder, 1, wx.LEFT|wx.EXPAND, 5 )
+
+        self.m_sizerValidationHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Validation Rules" ), wx.VERTICAL )
+
+        # WARNING: wxPython code generation isn't supported for this widget yet.
+        self.m_editValidationRules = self.createTestDataEditCtrl() # wx.Window( self.m_panelTestStepContents )
+        self.m_sizerValidationHolder.Add( self.m_editValidationRules, 1, wx.EXPAND |wx.ALL, 5 )
+
+
+        bSizer14.Add( self.m_sizerValidationHolder, 1, wx.EXPAND|wx.LEFT, 5 )
+
+
+        self.m_sizerTestData.Add( bSizer14, 1, wx.LEFT, 5 )
 
         bSizer13 = wx.BoxSizer( wx.VERTICAL )
 
@@ -561,18 +614,31 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer13.Add( self.m_sizerHandleOverrides, 0, wx.ALIGN_RIGHT, 5 )
 
-        sbSizer21 = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"How to Handle Errors" ), wx.VERTICAL )
+        self.m_sizerHandleErrors = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"How to Handle Errors" ), wx.VERTICAL )
 
         m_choiceHowToHandleErrorsChoices = [ u"Fail", u"Expect Any Error", u"Expect Error Containing" ]
         self.m_choiceHowToHandleErrors = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceHowToHandleErrorsChoices, 0 )
         self.m_choiceHowToHandleErrors.SetSelection( 0 )
-        sbSizer21.Add( self.m_choiceHowToHandleErrors, 0, wx.ALIGN_RIGHT, 5 )
+        self.m_sizerHandleErrors.Add( self.m_choiceHowToHandleErrors, 0, wx.ALIGN_RIGHT, 5 )
 
         self.m_txtExpectErrorContaining = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
-        sbSizer21.Add( self.m_txtExpectErrorContaining, 0, wx.ALIGN_RIGHT|wx.TOP, 5 )
+        self.m_sizerHandleErrors.Add( self.m_txtExpectErrorContaining, 0, wx.ALIGN_RIGHT|wx.TOP, 5 )
 
 
-        bSizer13.Add( sbSizer21, 1, wx.EXPAND|wx.TOP, 5 )
+        bSizer13.Add( self.m_sizerHandleErrors, 1, wx.EXPAND|wx.TOP, 5 )
+
+        self.m_sizerEnquiryType = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Enquiry Step type" ), wx.VERTICAL )
+
+        m_choiceEnquiryStepTypeChoices = [ u"Check Result", u"Action" ]
+        self.m_choiceEnquiryStepType = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceEnquiryStepTypeChoices, 0 )
+        self.m_choiceEnquiryStepType.SetSelection( 0 )
+        self.m_sizerEnquiryType.Add( self.m_choiceEnquiryStepType, 0, wx.ALIGN_RIGHT, 5 )
+
+        self.m_txtEnquiryActionCommand = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+        self.m_sizerEnquiryType.Add( self.m_txtEnquiryActionCommand, 0, wx.ALIGN_RIGHT|wx.TOP, 5 )
+
+
+        bSizer13.Add( self.m_sizerEnquiryType, 1, wx.EXPAND, 5 )
 
 
         self.m_sizerTestData.Add( bSizer13, 0, wx.ALIGN_RIGHT|wx.RIGHT|wx.LEFT, 5 )
@@ -607,9 +673,12 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
         self.m_txtTransactionID.Bind( wx.EVT_TEXT, self.onTransactionIDChanged )
         self.m_editTestData.Bind( wx.EVT_KEY_UP, self.onEditTestDataKeyUp )
+        self.m_editValidationRules.Bind( wx.EVT_KEY_UP, self.onValidationRulesKeyUp )
         self.m_choiceHowToHandleOverrides.Bind( wx.EVT_CHOICE, self.onHowToHandleOverridesChanged )
         self.m_choiceHowToHandleErrors.Bind( wx.EVT_CHOICE, self.onHowToHandleErrorsChanged )
         self.m_txtExpectErrorContaining.Bind( wx.EVT_TEXT, self.onExpectedErrorContainingTextChanged )
+        self.m_choiceEnquiryStepType.Bind( wx.EVT_CHOICE, self.onEnquiryStepTypeChanged )
+        self.m_txtEnquiryActionCommand.Bind( wx.EVT_TEXT, self.onEnquiryActionCommandChanged )
 
     def __del__( self ):
         pass
@@ -664,6 +733,9 @@ class T24TestStepPanelBase ( wx.Panel ):
     def onEditTestDataKeyUp( self, event ):
         event.Skip()
 
+    def onValidationRulesKeyUp( self, event ):
+        event.Skip()
+
     def onHowToHandleOverridesChanged( self, event ):
         event.Skip()
 
@@ -671,6 +743,12 @@ class T24TestStepPanelBase ( wx.Panel ):
         event.Skip()
 
     def onExpectedErrorContainingTextChanged( self, event ):
+        event.Skip()
+
+    def onEnquiryStepTypeChanged( self, event ):
+        event.Skip()
+
+    def onEnquiryActionCommandChanged( self, event ):
         event.Skip()
 
     def m_btnNewBeforeOnContextMenu( self, event ):
@@ -741,6 +819,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.Bind(wx.EVT_MENU, func, id=cutId)
         return (modifierKey, key, cutId )
 
+
 ###########################################################################
 class T24TestStepPanel (T24TestStepPanelBase):
 
@@ -764,7 +843,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         self.lblTestStepIndex.SetLabel('{}'.format(idx))
 
     def onActionChanged( self, event ):
-        if self._testStep:
+        if self._testStep and self._testStepsContainer:
             oldAction = self._testStep.GetStepType()
             newAction = self.m_choiceTestStepAction.GetStringSelection()
             oldSubSteps = self._testStep.subSteps()
@@ -783,45 +862,60 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep, oldSubSteps)
 
     def onTransactionChanged( self, event ):
-        if self._testStep:
+        if self._testStep and self._testStepsContainer:
             self._testStep.AppVersion = self.m_txtTestStepTransaction.GetValue()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onTransactionIDChanged(self, event):
-        if self._testStep:
+        if self._testStep and self._testStepsContainer:
             self._testStep.TransactionID = self.m_txtTransactionID.GetValue()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onLoginUsingUserOfGroupChanged(self, event):
-        if self._testStep:
+        if self._testStep and self._testStepsContainer:
             self._testStep.AppVersion = self.m_choiceLoginUsingUserOfGroup.GetStringSelection()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onEditTestDataKeyUp( self, event ):
-        if self._testStep:
+        if self._testStep and self._testStepsContainer:
             self._testStep.TestData = self.getTestDataFromUI()
             self._testStep.applyTestDataChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onHowToHandleOverridesChanged( self, event ):
-        if self._testStep:
+        if self._testStep and self._testStepsContainer:
             self._testStep.HowToHandleOverrides = self.m_choiceHowToHandleOverrides.GetStringSelection()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onHowToHandleErrorsChanged( self, event ):
-        if self._testStep:
+        if self._testStep and self._testStepsContainer:
             self._testStep.HowToHandleErrors = self.m_choiceHowToHandleErrors.GetStringSelection()
             self._testStep.applyChanges()
             self.updateUI()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onExpectedErrorContainingTextChanged( self, event ):
-        if self._testStep:
+        if self._testStep and self._testStepsContainer:
             self._testStep.ExpectErrorContaining = self.m_txtExpectErrorContaining.GetValue()
+            self._testStep.applyChanges()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
+    def onEnquiryStepTypeChanged( self, event ):
+        if self._testStep and self._testStepsContainer:
+            self._testStep.EnquiryAction = self.m_choiceEnquiryStepType.GetStringSelection()
+            if self._testStep.EnquiryAction == "Action":
+                self._testStep.EnquiryAction == ""  # if action is selected we need real action to be inputted in the self.m_txtEnquiryActionCommand
+            self._testStep.applyChanges()
+            self.updateUI()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
+    def onEnquiryActionCommandChanged( self, event ):
+        if self._testStep and self._testStepsContainer and self.m_choiceEnquiryStepType.GetStringSelection() != "Check Result":
+            self._testStep.EnquiryAction = self.m_txtEnquiryActionCommand.GetValue()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
@@ -844,6 +938,13 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_txtExpectErrorContaining.SetValue(self._testStep.ExpectErrorContaining)
         if self._testStep.HowToHandleOverrides and len(self._testStep.HowToHandleOverrides) > 0:
             self.m_choiceHowToHandleOverrides.SetStringSelection(self._testStep.HowToHandleOverrides)
+
+        if self._testStep.EnquiryAction and len(self._testStep.EnquiryAction) > 0:
+            if self._testStep.EnquiryAction == "Check Result":
+                self.m_choiceEnquiryStepType.SetStringSelection(self._testStep.EnquiryAction)
+            else:
+                self.m_choiceEnquiryStepType.SetStringSelection("Action")
+                self.m_txtEnquiryActionCommand.SetValue(self._testStep.EnquiryAction)
 
     def updateUI(self):
 
@@ -871,6 +972,8 @@ class T24TestStepPanel (T24TestStepPanelBase):
         elif self._testStep.GetStepType() == 'I':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
+            self.m_sizerEnquiryType.ShowItems(False)
+            self.m_sizerValidationHolder.ShowItems(False)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Test Data')
             self.setTestData(self._testStep.TestData)
         elif self._testStep.GetStepType() == 'A':
@@ -879,15 +982,20 @@ class T24TestStepPanel (T24TestStepPanelBase):
         elif self._testStep.GetStepType() == 'S':
             self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(False)
+            self.m_sizerValidationHolder.ShowItems(True)
         elif self._testStep.GetStepType() == 'V':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
+            self.m_sizerEnquiryType.ShowItems(False)
+            self.m_sizerValidationHolder.ShowItems(False)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Test Data')
             self.setTestData(self._testStep.TestData)
         elif self._testStep.GetStepType() == 'E':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
+            self.m_sizerEnquiryType.ShowItems(True)
             self.m_sizerHandleOverrides.ShowItems(False)
+            self.m_sizerValidationHolder.ShowItems(True)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Enquiry Constraints')
             self.setTestData(self._testStep.TestData)
 
@@ -902,6 +1010,11 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_txtExpectErrorContaining.Show(True)
         else:
             self.m_txtExpectErrorContaining.Show(False)
+
+        if self.m_choiceEnquiryStepType.IsShown() and self.m_choiceEnquiryStepType.GetStringSelection() == u"Action":
+            self.m_txtEnquiryActionCommand.Show(True)
+        else:
+            self.m_txtEnquiryActionCommand.Show(False)
 
         #self.Update()
         self.m_panelTestStepContents.Layout()
