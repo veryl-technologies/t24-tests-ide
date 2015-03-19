@@ -781,8 +781,6 @@ class T24TestStepPanelBase ( wx.Panel ):
         #ctrl.SetLexer(stc.STC_LEX_PROPERTIES)
         #ctrl.StyleSetSpec(stc.STC_PROPS_ASSIGNMENT, "fore:#0000ff" )
 
-
-
         self._register_shortcuts(ctrl)
         return ctrl
 
@@ -798,21 +796,21 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         accels = []
 
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('X'),(lambda e: self.m_editTestData.Cut())))
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('C'),(lambda e: self.m_editTestData.Copy())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('X'),(lambda e: editor.Cut())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('C'),(lambda e: editor.Copy())))
 
         if IS_MAC: # Mac needs this key binding
-            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('A'),(lambda e: self.m_editTestData.SelectAll())))
+            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('A'),(lambda e: editor.SelectAll())))
 
         if IS_WINDOWS or IS_MAC: # Linux does not need this key binding
-            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('V'),(lambda e: self.m_editTestData.Paste())))
+            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('V'),(lambda e: editor.Paste())))
 
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Z'),(lambda e: self.m_editTestData.Undo())))
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Y'),(lambda e: self.m_editTestData.Redo())))
-        accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE,(lambda e: self.m_editTestData.DeleteBack())))#todo how to delete the selection?
-        #accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('G'),(lambda e: self.m_editTestData.FindText())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Z'),(lambda e: editor.Undo())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Y'),(lambda e: editor.Redo())))
+        accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE,(lambda e: editor.DeleteBack())))#todo how to delete the selection?
+        #accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('G'),(lambda e: editor.FindText())))
 
-        self.SetAcceleratorTable(wx.AcceleratorTable(accels))
+        editor.SetAcceleratorTable(wx.AcceleratorTable(accels))
 
     def _createAccelerator(self, modifierKey, key, func):
         cutId = wx.NewId()
@@ -881,8 +879,17 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
     def onEditTestDataKeyUp( self, event ):
         if self._testStep and self._testStepsContainer:
-            self._testStep.TestData = self.getTestDataFromUI()
-            self._testStep.applyTestDataChanges()
+            if self.m_choiceTestStepAction.GetStringSelection() == 'E':
+                self._testStep.EnquiryConstraints = self.getEnqConstraintsFromUI()
+            else:
+                self._testStep.TestData = self.getTestDataFromUI()
+            self._testStep.applyTestDataOrEnqConstraintChanges()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
+    def onValidationRulesKeyUp(self, event):
+        if self._testStep and self._testStepsContainer:
+            self._testStep.ValidationRules = self.getValidationRulesFromUI()
+            self._testStep.applyValidationRulesChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onHowToHandleOverridesChanged( self, event ):
@@ -983,6 +990,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(False)
             self.m_sizerValidationHolder.ShowItems(True)
+            self.setValidationRules(self._testStep.ValidationRules)
         elif self._testStep.GetStepType() == 'V':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
@@ -997,7 +1005,8 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerHandleOverrides.ShowItems(False)
             self.m_sizerValidationHolder.ShowItems(True)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Enquiry Constraints')
-            self.setTestData(self._testStep.TestData)
+            self.setEnquiryConstraints(self._testStep.EnquiryConstraints)
+            self.setValidationRules(self._testStep.ValidationRules)
 
         #todo - rest of test cases. It would be good to add generic test step or sth like that
         else:
@@ -1026,7 +1035,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_choiceLoginUsingUserOfGroup.Append(userGroup)
 
     def setTestData(self, testData):
-
+        # todo - these 3 functions bellow and many others must be moved to some kint of utils
         self.m_editTestData.SetText('')
 
         if testData is None:
@@ -1038,24 +1047,35 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_editTestData.AppendText(attr[1])
             self.m_editTestData.AppendText('\r\n')
 
-        ""
-        """
-        self.m_gridTestData.DeleteRows(0, self.m_gridTestData.GetNumberRows(), True)
+    def setEnquiryConstraints(self, enquiryConstraints):
+        self.m_editTestData.SetText('')
 
-        if testData is None:
+        if enquiryConstraints is None:
             return
 
-        self.m_gridTestData.AppendRows(testData.__len__())
+        for attr in enquiryConstraints:
+            self.m_editTestData.AppendText(attr[0])
+            self.m_editTestData.AppendText(' :')
+            self.m_editTestData.AppendText(attr[1])
+            self.m_editTestData.AppendText(':= ')
+            self.m_editTestData.AppendText(attr[2])
+            self.m_editTestData.AppendText('\r\n')
 
-        row = 0
-        for attr in testData:
-            self.m_gridTestData.SetCellValue(row,0,attr[0])
-            self.m_gridTestData.SetCellValue(row,2,attr[1])
+    def setValidationRules(self, validationRules):
+        self.m_editValidationRules.SetText('')
 
-            row+=1
-        """
+        if validationRules is None:
+            return
+
+        for attr in validationRules:
+            self.m_editValidationRules.AppendText(attr[0])
+            self.m_editValidationRules.AppendText(' :')
+            self.m_editValidationRules.AppendText(attr[1])
+            self.m_editValidationRules.AppendText(':= ')
+            self.m_editValidationRules.AppendText(attr[2])
+            self.m_editValidationRules.AppendText('\r\n')
+
     def getTestDataFromUI(self):
-
         res = []
 
         for line in self.m_editTestData.GetText().split('\n'):
@@ -1065,9 +1085,29 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
         return res
 
+    def getEnqConstraintsFromUI(self):
+        res = []
+
+        for line in self.m_editTestData.GetText().split('\n'):
+            nameOperValue = T24TestStepPanel.splitNameOperatorValue(line)
+            if nameOperValue:
+                res.append(nameOperValue)
+
+        return res
+
+    def getValidationRulesFromUI(self):
+        # todo - currently enquiry constraints syntax must be OK for validation rules also
+        res = []
+
+        for line in self.m_editValidationRules.GetText().split('\n'):
+            nameOperValue = T24TestStepPanel.splitNameOperatorValue(line)
+            if nameOperValue:
+                res.append(nameOperValue)
+
+        return res
+
     @staticmethod
     def splitNameValue(nameValue):
-
         if not nameValue or len(nameValue)==0:
             return None
 
@@ -1080,6 +1120,29 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
         if name and len(name)>0:
             return (name,value)
+
+        return None
+
+    @staticmethod
+    def splitNameOperatorValue(nameOperValue):
+        # todo - we can change the format to: Short name like ...14... / MNEMONIC equal MNZ0001
+        if not nameOperValue or len(nameOperValue)==0:
+            return None
+
+        pos = nameOperValue.find(':=')
+        if pos <= 2:
+            return None
+
+        fiIdx = nameOperValue.rfind(':',0,pos-1)
+        if fiIdx < 1:
+            return None
+
+        name = nameOperValue[:fiIdx].strip()
+        value = nameOperValue[pos+2:].strip()
+        oper = nameOperValue[fiIdx+1:pos].strip()
+
+        if name and len(name)>0 and oper and len(oper)>=2:
+            return (name,oper,value)
 
         return None
 
