@@ -28,6 +28,8 @@ from robotide.action.actioninfo import ActionInfo
 
 from robotide.tip_api.T24TestStep import T24TestStep
 from robotide.tip_api.TipServerResources import TipServerResources
+from robotide.tip_api.TipStyledTextCtrl import TipStyledTextCtrl
+from robotide.tip_api.tiplexer import RowUtils
 
 import wx
 import wx.xrc
@@ -244,35 +246,6 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
 
 
 ###########################################################################
-"""
-class T24TestStepsContainerBase ( wx.Panel ):
-
-    def __init__( self, parent ):
-        wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, size = wx.Size( 500,300 ), style = wx.TAB_TRAVERSAL )
-
-        bSizer8 = wx.BoxSizer( wx.VERTICAL )
-
-        self.m_scrolledWindow2 = wx.ScrolledWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
-        self.m_scrolledWindow2.SetScrollRate( 5, 5 )
-        self.m_sizerTestStepsContainer = wx.BoxSizer( wx.VERTICAL )
-        #self.m_sizerTestStepsContainer = wx.FlexGridSizer( 0, 1, 0, 0 )
-        #self.m_sizerTestStepsContainer.AddGrowableCol( 0 )
-        #self.m_sizerTestStepsContainer.SetFlexibleDirection( wx.BOTH )
-        #self.m_sizerTestStepsContainer.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-
-        self.m_scrolledWindow2.SetSizer( self.m_sizerTestStepsContainer )
-        self.m_scrolledWindow2.Layout()
-        self.m_sizerTestStepsContainer.Fit( self.m_scrolledWindow2 )
-        bSizer8.Add( self.m_scrolledWindow2, 1, wx.EXPAND |wx.ALL, 5 )
-
-
-        self.SetSizer( bSizer8 )
-        self.Layout()
-
-    def __del__( self ):
-        pass
-"""
 class T24TestStepsContainerBase ( wx.Panel ):
 
     def __init__( self, parent ):
@@ -757,66 +730,8 @@ class T24TestStepPanelBase ( wx.Panel ):
     # PASTE UI TILL HERE
 
     def createTestDataEditCtrl(self):
-        # Sample content
-        # MNEMONIC:=SUPER001
-        # SHORT.NAME:=Super Duper
-        # Name.1:=Bab Jaga
-        # City|ADDRESS:1:1=London
-        ctrl = wx.stc.StyledTextCtrl(self.m_panelTestStepContents, wx.ID_ANY)
-
-        font = self._create_font()
-        face = font.GetFaceName()
-        size = font.GetPointSize()
-        ctrl.SetFont(font)
-        ctrl.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,"face:%s,size:%d" % (face, size))
-        ctrl.StyleSetSpec(2, "fore:#b22222") # firebrick
-        ctrl.SetScrollWidth(100)
-
-        # todo implement own lexer - For apps: NAME:=VALUES, enq: FIELD:LK:=...SEARCH VAL...
-
-        ctrl.SetLexer(stc.STC_LEX_PASCAL)
-        ctrl.StyleSetSpec(stc.STC_P_OPERATOR, "fore:#0000ff" )
-        # ctrl.StyleSetSpec(stc.STC_P_IDENTIFIER, "fore:#00ff00")
-
-        #ctrl.SetLexer(stc.STC_LEX_PROPERTIES)
-        #ctrl.StyleSetSpec(stc.STC_PROPS_ASSIGNMENT, "fore:#0000ff" )
-
-        self._register_shortcuts(ctrl)
+        ctrl = TipStyledTextCtrl(self.m_panelTestStepContents)
         return ctrl
-
-    def _create_font(self):
-        font=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
-        if not font.IsFixedWidth():
-            # fixed width fonts are typically a little bigger than their variable width
-            # peers so subtract one from the point size.
-            font = wx.Font(font.GetPointSize()-1, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        return font
-
-    def _register_shortcuts(self, editor):
-
-        accels = []
-
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('X'),(lambda e: editor.Cut())))
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('C'),(lambda e: editor.Copy())))
-
-        if IS_MAC: # Mac needs this key binding
-            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('A'),(lambda e: editor.SelectAll())))
-
-        if IS_WINDOWS or IS_MAC: # Linux does not need this key binding
-            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('V'),(lambda e: editor.Paste())))
-
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Z'),(lambda e: editor.Undo())))
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Y'),(lambda e: editor.Redo())))
-        accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE,(lambda e: editor.DeleteBack())))#todo how to delete the selection?
-        #accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('G'),(lambda e: editor.FindText())))
-
-        editor.SetAcceleratorTable(wx.AcceleratorTable(accels))
-
-    def _createAccelerator(self, modifierKey, key, func):
-        cutId = wx.NewId()
-        self.Bind(wx.EVT_MENU, func, id=cutId)
-        return (modifierKey, key, cutId )
-
 
 ###########################################################################
 class T24TestStepPanel (T24TestStepPanelBase):
@@ -1035,45 +950,43 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_choiceLoginUsingUserOfGroup.Append(userGroup)
 
     def setTestData(self, testData):
-        # todo - these 3 functions bellow and many others must be moved to some kint of utils
-        self.m_editTestData.SetText('')
+        # todo - these 3 functions bellow and many others must be moved to some kind of utils
+        self.m_editTestData.setTestDataSyntax(True)
+        self.m_editTestData.set_text('')
 
         if testData is None:
             return
 
+        text = ''
         for attr in testData:
-            self.m_editTestData.AppendText(attr[0])
-            self.m_editTestData.AppendText(' := ')
-            self.m_editTestData.AppendText(attr[1])
-            self.m_editTestData.AppendText('\r\n')
+            text += '{} := {}\r\n'.format(attr[0], attr[1])
+
+        self.m_editTestData.set_text(text)
 
     def setEnquiryConstraints(self, enquiryConstraints):
-        self.m_editTestData.SetText('')
+        self.m_editTestData.setTestDataSyntax(False)
+        self.m_editTestData.set_text('')
 
         if enquiryConstraints is None:
             return
 
+        text = ''
         for attr in enquiryConstraints:
-            self.m_editTestData.AppendText(attr[0])
-            self.m_editTestData.AppendText(' :')
-            self.m_editTestData.AppendText(attr[1])
-            self.m_editTestData.AppendText(':= ')
-            self.m_editTestData.AppendText(attr[2])
-            self.m_editTestData.AppendText('\r\n')
+            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+
+        self.m_editTestData.set_text(text)
 
     def setValidationRules(self, validationRules):
-        self.m_editValidationRules.SetText('')
+        self.m_editValidationRules.set_text('')
 
         if validationRules is None:
             return
 
+        text = ''
         for attr in validationRules:
-            self.m_editValidationRules.AppendText(attr[0])
-            self.m_editValidationRules.AppendText(' :')
-            self.m_editValidationRules.AppendText(attr[1])
-            self.m_editValidationRules.AppendText(':= ')
-            self.m_editValidationRules.AppendText(attr[2])
-            self.m_editValidationRules.AppendText('\r\n')
+            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+
+        self.m_editValidationRules.set_text(text)
 
     def getTestDataFromUI(self):
         res = []
@@ -1125,26 +1038,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
     @staticmethod
     def splitNameOperatorValue(nameOperValue):
-        # todo - we can change the format to: Short name like ...14... / MNEMONIC equal MNZ0001
-        if not nameOperValue or len(nameOperValue)==0:
-            return None
-
-        pos = nameOperValue.find(':=')
-        if pos <= 2:
-            return None
-
-        fiIdx = nameOperValue.rfind(':',0,pos-1)
-        if fiIdx < 1:
-            return None
-
-        name = nameOperValue[:fiIdx].strip()
-        value = nameOperValue[pos+2:].strip()
-        oper = nameOperValue[fiIdx+1:pos].strip()
-
-        if name and len(name)>0 and oper and len(oper)>=2:
-            return (name,oper,value)
-
-        return None
+        return RowUtils.ParseEnquiryRow(nameOperValue)
 
 
     @staticmethod

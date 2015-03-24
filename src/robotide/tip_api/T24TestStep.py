@@ -1,6 +1,7 @@
 __author__ = 'Zhelev'
 
 from robot.parsing.model import Step
+from robotide.tip_api.tiplexer import RowUtils
 
 # todo - need to build test steps inheritance
 class T24TestStep(object):
@@ -339,17 +340,7 @@ class T24TestStep(object):
         res = []
 
         for item in list:
-            eqIdx = item.find(':=')
-            if eqIdx <= 2:
-                return None # todo - maybe report an error?
-
-            fiIdx = item.rfind(':',0,eqIdx-1)
-            if fiIdx < 1:
-                return None
-
-            name = item[:fiIdx].strip()
-            value = item[eqIdx+2:].strip()
-            oper = item[fiIdx+1:eqIdx].strip()
+            name, oper, value = RowUtils.ParseEnquiryRow(item)
             res.append((name,oper,value))
 
         return res;
@@ -370,13 +361,13 @@ class T24TestStep(object):
         elif self._Action == 'E':
             self._enquiryConstraintsPreAction.args = []
             for enc in self.EnquiryConstraints:
-                self._enquiryConstraintsPreAction.args.append('{}:{}:={}'.format(enc[0], enc[1], enc[2]))
+                self._enquiryConstraintsPreAction.args.append('{} {} {}'.format(enc[0], enc[1], enc[2]))
 
     def applyValidationRulesChanges(self):
         if self._Action == 'E' or self._Action == 'S':
             self._validationRulesPreAction.args = []
             for vr in self.ValidationRules:
-                self._validationRulesPreAction.args.append('{}:{}:={}'.format(vr[0], vr[1], vr[2]))
+                self._validationRulesPreAction.args.append('{} {} {}'.format(vr[0], vr[1], vr[2]))
 
     def findPreAction(self, stepPreActions, keyword, assign):
         if stepPreActions is None:
