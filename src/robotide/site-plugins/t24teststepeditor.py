@@ -29,7 +29,6 @@ from robotide.action.actioninfo import ActionInfo
 from robotide.tip_api.T24TestStep import T24TestStep
 from robotide.tip_api.TipServerResources import TipServerResources
 from robotide.tip_api.TipStyledTextCtrl import TipStyledTextCtrl
-from robotide.tip_api.tiplexer import RowUtils
 
 import wx
 import wx.xrc
@@ -292,9 +291,9 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
         pass
 
     def setTestCase(self, treeNode, tree):
+        # self._testCaseTreeNode._data.item is the test case - we read and update it
         self._testCaseTreeNode = treeNode
         self._tree = tree
-        # todo - self._testCaseTreeNode._data.item is the test case we should read from it and update it
         if self._testCaseTreeNode is None:
             self.Hide()
         else:
@@ -925,7 +924,6 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
         #todo - rest of test cases. It would be good to add generic test step or sth like that
         else:
-            # self.m_lblTransID.SetLabel('TODO Not Implemented')
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
 
@@ -950,96 +948,22 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_choiceLoginUsingUserOfGroup.Append(userGroup)
 
     def setTestData(self, testData):
-        # todo - these 3 functions bellow and many others must be moved to some kind of utils
-        self.m_editTestData.setTestDataSyntax(True)
-        self.m_editTestData.set_text('')
-
-        if testData is None:
-            return
-
-        text = ''
-        for attr in testData:
-            text += '{} := {}\r\n'.format(attr[0], attr[1])
-
-        self.m_editTestData.set_text(text)
+        self.m_editTestData.setTestData(testData)
 
     def setEnquiryConstraints(self, enquiryConstraints):
-        self.m_editTestData.setTestDataSyntax(False)
-        self.m_editTestData.set_text('')
-
-        if enquiryConstraints is None:
-            return
-
-        text = ''
-        for attr in enquiryConstraints:
-            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
-
-        self.m_editTestData.set_text(text)
+        self.m_editTestData.setEnquiryConstraints(enquiryConstraints)
 
     def setValidationRules(self, validationRules):
-        self.m_editValidationRules.set_text('')
-
-        if validationRules is None:
-            return
-
-        text = ''
-        for attr in validationRules:
-            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
-
-        self.m_editValidationRules.set_text(text)
+        self.m_editValidationRules.setValidationRules(validationRules)
 
     def getTestDataFromUI(self):
-        res = []
-
-        for line in self.m_editTestData.GetText().split('\n'):
-            nameValue = T24TestStepPanel.splitNameValue(line)
-            if nameValue:
-                res.append(nameValue)
-
-        return res
+        return self.m_editTestData.getTestDataFromUI()
 
     def getEnqConstraintsFromUI(self):
-        res = []
-
-        for line in self.m_editTestData.GetText().split('\n'):
-            nameOperValue = T24TestStepPanel.splitNameOperatorValue(line)
-            if nameOperValue:
-                res.append(nameOperValue)
-
-        return res
+        return self.m_editTestData.getEnqConstraintsFromUI()
 
     def getValidationRulesFromUI(self):
-        # todo - currently enquiry constraints syntax must be OK for validation rules also
-        res = []
-
-        for line in self.m_editValidationRules.GetText().split('\n'):
-            nameOperValue = T24TestStepPanel.splitNameOperatorValue(line)
-            if nameOperValue:
-                res.append(nameOperValue)
-
-        return res
-
-    @staticmethod
-    def splitNameValue(nameValue):
-        if not nameValue or len(nameValue)==0:
-            return None
-
-        pos = nameValue.find(':=')
-        if pos <= 0:
-            return None
-
-        name = nameValue[:pos].strip()
-        value = nameValue[pos+2:].strip()
-
-        if name and len(name)>0:
-            return (name,value)
-
-        return None
-
-    @staticmethod
-    def splitNameOperatorValue(nameOperValue):
-        return RowUtils.ParseEnquiryRow(nameOperValue)
-
+        return self.m_editValidationRules.getValidationRulesFromUI()
 
     @staticmethod
     def Warn(parent, message, caption = 'Warning!'):

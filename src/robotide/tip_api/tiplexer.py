@@ -24,6 +24,25 @@ VALUECONST = Token.ConstantValue
 VALUEVARIABLE = Token.Variable
 ERROR = Token.Error
 
+#
+# Syntax:
+# {FIELD.NAME} {OPERATOR} {VALUE}
+#       * {VALUE} can be constant, variable or expression
+#
+# Test Data Example:    (only operator ':=' is applicable for test data definition)
+# MNEMONIC:=$NEXT_MNEMONIC
+# Short Name:=John Smith
+# NAME:1:1:=John Bonn Smith
+# Sector:=${Calculated Sector}
+#
+#
+# Enquiry Constraint / Validation Rules Example:
+# Name.1 matches ...Bonn...
+# SHORT.NAME:EQ:=John Smith
+# Sector ends with 99
+#
+#
+
 class TipLexer(Lexer):
 
     _isTestDataSyntax = False
@@ -55,7 +74,7 @@ class RowTokenizer(object):
         hasFieldName = False
         hasOper = False
         for index, value in self._next_word(row): #self._next_word(row):
-            if self._isOperator(value): # todo we have to include here also operators with 2 words like: 'starts with'
+            if self._isOperator(value):
                 if hasFieldName == False:
                     yield index, ERROR, unicode(value) # have operator prior field name
                 elif hasOper:
@@ -234,12 +253,25 @@ class RowUtils(object):
         pass
 
     @staticmethod
+    def ParseTestDataRow(row):
+        name, oper, value = RowUtils._parseRow(row, True)
+        return name, value
+
+    @staticmethod
     def ParseEnquiryRow(row):
+        return RowUtils._parseRow(row, False)
+
+    @staticmethod
+    def _parseRow(row, isTestDataSyntax):
         res_name = ''
         res_oper = ''
         res_value = ''
         hasOper = False
-        for index, token, value in RowTokenizer().tokenize(row):
+
+        tokenizer = RowTokenizer()
+        tokenizer._isTestDataSyntax = isTestDataSyntax
+
+        for index, token, value in tokenizer.tokenize(row):
             if token == OPERATOR:
                 hasOper = True
                 res_oper = value
@@ -249,5 +281,3 @@ class RowUtils(object):
                 res_value += value
 
         return res_name.strip(), res_oper, res_value.strip()
-
-

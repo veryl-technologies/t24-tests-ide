@@ -50,8 +50,6 @@ class T24TestStep(object):
         self._enquiryConstraintsPreAction = None
         self._validationRulesPreAction = None
 
-        # todo-parse the text and init the object
-        # todo - this is just for the demo - real parsing must be implemented
         if stepDetails.keyword == self.keyword_L:
             self._Action='Login'
             self.setLoginArgs(stepDetails.args)
@@ -84,7 +82,7 @@ class T24TestStep(object):
             if self._testDataPreAction is None:
                 self.SetStepType(self._Action)  # this will create new _testDataPreAction
         else:
-            # todo - we need to implement other types
+            # Other types goes here
             return False
 
         return True
@@ -99,7 +97,7 @@ class T24TestStep(object):
             self._enquiryConstraintsPreAction = None
             self._validationRulesPreAction = None
             if self._testDataPreAction is None:
-                testDataVarName = '@{testDataFields1}'  # todo - do we need to change the name or this is OK, next step will just override it
+                testDataVarName = '@{testDataFields1}'
                 self._testDataPreAction = Step('')
                 self._testDataPreAction.keyword = 'Create List'
                 self._testDataPreAction.assign =[testDataVarName + '=']
@@ -109,7 +107,7 @@ class T24TestStep(object):
         elif self._Action == 'E':
             self._testDataPreAction = None
             if self._enquiryConstraintsPreAction is None:
-                enqVarName = '@{enquiryConstraints1}'  # todo - do we need to change the name or this is OK, next step will just override it
+                enqVarName = '@{enquiryConstraints1}'
                 self._enquiryConstraintsPreAction = Step('')
                 self._enquiryConstraintsPreAction.keyword = 'Create List'
                 self._enquiryConstraintsPreAction.assign = [enqVarName + '=']
@@ -117,7 +115,7 @@ class T24TestStep(object):
                 self._setArg(1, enqVarName)
 
             if self._validationRulesPreAction is None:
-                varName = '@{validationRules1}'  # todo - do we need to change the name or this is OK, next step will just override it
+                varName = '@{validationRules1}'
                 self._validationRulesPreAction = Step('')
                 self._validationRulesPreAction.keyword = 'Create List'
                 self._validationRulesPreAction.assign = [varName + '=']
@@ -129,7 +127,7 @@ class T24TestStep(object):
             self._enquiryConstraintsPreAction = None
 
             if self._validationRulesPreAction is None:
-                varName = '@{validationRules1}'  # todo - do we need to change the name or this is OK, next step will just override it
+                varName = '@{validationRules1}'
                 self._validationRulesPreAction = Step('')
                 self._validationRulesPreAction.keyword = 'Create List'
                 self._validationRulesPreAction.assign = [varName + '=']
@@ -284,15 +282,6 @@ class T24TestStep(object):
         stepDetails.keyword = T24TestStep.getKeywordFromAction(action)
         stepDetails.args = []
 
-        # todo - on new test step depending on the type we have to add some hints. For example for 'I' step:
-        """
-        // Add test data here. Format:
-        // [Field Name] := [Field Value]
-        // Example:
-        // NAME.1 := Jhon Smith
-        // Short Name := JhSmith
-        """
-
         return T24TestStep([],stepDetails)
 
     @staticmethod
@@ -350,9 +339,6 @@ class T24TestStep(object):
         return self._getEnqConstraintList(list)
 
     def applyTestDataOrEnqConstraintChanges(self):
-        # todo - we have to identify whether the test data is changed and if not this func must result false
-        # todo - then the caller function will know whether this is a real change or not!
-
         if self._Action == 'I' or self._Action == 'V':
             self._testDataPreAction.args = []
             for td in self.TestData:
@@ -379,13 +365,7 @@ class T24TestStep(object):
 
         return None
 
-    def toString(self):
-        # todo - this is just for the demo
-        # todo - real implementation is needed
-        return self._Action + ' ' + self.AppVersion
-
     def applyChanges(self):
-        # todo - apply other changes also
         self._setArg(0, self.AppVersion)
 
         if self._Action == 'Login':

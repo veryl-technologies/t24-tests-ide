@@ -5,6 +5,7 @@ from wx import stc
 
 import tiplexer
 from tiplexer import TipLexer
+from tiplexer import RowUtils
 
 class TipStyledTextCtrl(stc.StyledTextCtrl):
 
@@ -43,6 +44,75 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
 
     def setTestDataSyntax(self, isTestData):
         self.stylizer.setTestDataSyntax(isTestData)
+
+    def setTestData(self, testData):
+        self.setTestDataSyntax(True)
+        self.set_text('')
+
+        if testData is None:
+            return
+
+        text = ''
+        for attr in testData:
+            text += '{} := {}\r\n'.format(attr[0], attr[1])
+
+        self.set_text(text)
+
+    def setEnquiryConstraints(self, enquiryConstraints):
+        self.setTestDataSyntax(False)
+        self.set_text('')
+
+        if enquiryConstraints is None:
+            return
+
+        text = ''
+        for attr in enquiryConstraints:
+            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+
+        self.set_text(text)
+
+    def setValidationRules(self, validationRules):
+        self.set_text('')
+
+        if validationRules is None:
+            return
+
+        text = ''
+        for attr in validationRules:
+            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+
+        self.set_text(text)
+
+    def getTestDataFromUI(self):
+        res = []
+
+        for line in self.GetText().split('\n'):
+            nameValue = RowUtils.ParseTestDataRow(line)
+            if nameValue:
+                res.append(nameValue)
+
+        return res
+
+    def getEnqConstraintsFromUI(self):
+        res = []
+
+        for line in self.GetText().split('\n'):
+            nameOperValue = RowUtils.ParseEnquiryRow(line)
+            if nameOperValue:
+                res.append(nameOperValue)
+
+        return res
+
+    def getValidationRulesFromUI(self):
+        # Currently enquiry constraints syntax must be OK for validation rules also
+        res = []
+
+        for line in self.GetText().split('\n'):
+            nameOperValue = RowUtils.ParseEnquiryRow(line)
+            if nameOperValue:
+                res.append(nameOperValue)
+
+        return res
 
     def set_text(self, text):
         self.SetReadOnly(False)
