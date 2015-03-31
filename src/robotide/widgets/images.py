@@ -46,7 +46,8 @@ class ImageProvider(object):
         self.TOOLBAR_NEXT = self._load_image('control_fastforward.png')
         self.SWITCH_FIELDS_ICON = self._load_image('switch.png')
 
-        self.TEST_STEPS_LIST = self._load_image('tip_32_test_steps_list.png')
+        self.TEST_STEPS_LIST = self._load_image('tip_16_testcase.png')
+        self.TEST_RUN = self._load_image('tip_16_run.png')
 
         self.WORKSPACE_SETUP = self._load_image('tip_32_folder.png')
         self.FILE_SAVE = self._load_image('tip_32_save.png')

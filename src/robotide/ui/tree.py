@@ -37,6 +37,7 @@ from robotide import utils
 
 from .treenodehandlers import ResourceRootHandler, action_handler_class, ResourceFileHandler
 from .images import TreeImageList
+from robotide.tip_api.uicustomizations import UICustomizations
 
 _TREE_ARGS = {'style':wx.TR_DEFAULT_STYLE}
 
@@ -70,6 +71,9 @@ class Tree(treemixin.DragAndDrop, customtreectrl.CustomTreeCtrl, utils.RideEvent
         self._execution_results = None
         if not hasattr(self, 'OnCancelEdit'):
             self.OnCancelEdit = self._on_cancel_edit
+
+        self.SetFont(UICustomizations.TreeFont())
+
 
     def _create_test_selection_controller(self):
         tsc = TestSelectionController()

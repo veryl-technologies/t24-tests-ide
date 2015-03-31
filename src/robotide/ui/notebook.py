@@ -33,6 +33,7 @@ class NoteBook(fnb.FlatNotebook):
         self.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnTabChanged)
         imageList = ImageList(16,16)
         imageList.add(ImageProvider().TEST_STEPS_LIST)# todo build good image list
+        imageList.add(ImageProvider().TEST_RUN)
         self.SetImageList(imageList)
 
         self._tab_closing = False
@@ -41,7 +42,11 @@ class NoteBook(fnb.FlatNotebook):
     def add_tab(self, tab, title, allow_closing=True):
         if not allow_closing:
             self._uncloseable.append(tab)
-        self.AddPage(tab, title.strip())
+
+        if title == 'Run':
+            self.add_tab_with_img(tab, title, 1, allow_closing)
+        else:
+            self.AddPage(tab, title.strip())
 
     def add_tab_with_img(self, tab, title, imageIndex, allow_closing=True):
         if not allow_closing:

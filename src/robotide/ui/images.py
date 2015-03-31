@@ -33,16 +33,16 @@ class TreeImageList(wx.ImageList):
         wx.ImageList.__init__(self, *_SIZE)
         self._execution_results = None
         self._images = {
-            TestDataDirectoryController: _TreeImage(self, 'folder.png'),
-            'resource directory': _TreeImage(self, 'folder_wrench.png'),
-            TestCaseFileController: _TreeImage(self, 'page_white.png'),
-            TestCaseController: _TreeImage(self, 'robot.png'),
-            UserKeywordController: _TreeImage(self, 'cog.png'),
-            ResourceFileController: _TreeImage(self, 'page_white_gear.png'),
-            VariableController: _TreeImage(self, 'dollar.png'),
-            'running': _TreeImage(self, 'robot_running.png'),
-            'passed': _TreeImage(self, 'robot_passed.png'),
-            'failed': _TreeImage(self, 'robot_failed.png'),
+            TestDataDirectoryController: _TreeImage(self, 'tip_16_folder.png'),
+            'resource directory': _TreeImage(self, 'tip_16_folder_wrench.png'),
+            TestCaseFileController: _TreeImage(self, 'tip_16_document.png'),
+            TestCaseController: _TreeImage(self, 'tip_16_testcase.png'),
+            UserKeywordController: _TreeImage(self, 'tip_16_cog.png'),
+            ResourceFileController: _TreeImage(self, 'tip_16_page_white_gear.png'),
+            VariableController: _TreeImage(self, 'tip_16_dollar.png'),
+            'running': _TreeImage(self, 'tip_16_robot_running.png'),
+            'passed': _TreeImage(self, 'tip_16_robot_passed.png'),
+            'failed': _TreeImage(self, 'tip_16_robot_failed.png'),
             ExcludedDirectoryController: _TreeImage(self, 'folder_excluded.png')
         }
 
