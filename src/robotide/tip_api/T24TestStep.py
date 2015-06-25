@@ -36,7 +36,7 @@ class T24TestStep(object):
 
     IsRealTestStep = False
 
-    def __init__( self, stepPreActions, stepDetails ):
+    def __init__(self, stepPreActions, stepDetails):
         # stepPreActions are the keywords for initialization of variables etc that belong to the entire test step
         self._stepDetails = stepDetails
         self.IsRealTestStep = self.parseTestStep(stepDetails, stepPreActions)
@@ -45,39 +45,45 @@ class T24TestStep(object):
     def isT24TestStep(stepDetails):
         return T24TestStep(None, stepDetails)._Action != ''
 
-    def parseTestStep(self, stepDetails, stepPreActions = None):
+    def __str__(self):
+        return self._Action
+
+    def __repr__(self):
+        return self.__str__()
+
+    def parseTestStep(self, stepDetails, stepPreActions=None):
         self._testDataPreAction = None
         self._enquiryConstraintsPreAction = None
         self._validationRulesPreAction = None
 
         if stepDetails.keyword == self.keyword_L:
-            self._Action='Login'
+            self._Action = 'Login'
             self.setLoginArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_M:
-            self._Action='M'
+            self._Action = 'M'
             self.setMenuArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_I:
-            self._Action='I'
+            self._Action = 'I'
             self.setCreateOrAmendOrValidateArgs(stepDetails.args, stepPreActions)
             if self._testDataPreAction is None:
                 self.SetStepType(self._Action)  # this will create new _testDataPreAction
         elif stepDetails.keyword == self.keyword_A:
-            self._Action='A'
+            self._Action = 'A'
             self.setAuthorizeArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_S:
-            self._Action='S'
+            self._Action = 'S'
             if self._validationRulesPreAction is None:
                 self.SetStepType(self._Action)
             self.setCheckRecordArgs(stepDetails.args, stepPreActions)
         elif stepDetails.keyword == self.keyword_E:
-            self._Action='E'
+            self._Action = 'E'
             self.setEnquiryArgs(stepDetails.args, stepPreActions)
             if self._enquiryConstraintsPreAction is None:
                 self.SetStepType(self._Action)  # this will create new _enquiryConstraintsPreAction
             if self._validationRulesPreAction is None:
                 self.SetStepType(self._Action)
         elif stepDetails.keyword == self.keyword_V:
-            self._Action='V'
+            self._Action = 'V'
             self.setCreateOrAmendOrValidateArgs(stepDetails.args, stepPreActions)
             if self._testDataPreAction is None:
                 self.SetStepType(self._Action)  # this will create new _testDataPreAction
@@ -134,7 +140,6 @@ class T24TestStep(object):
                 self._validationRulesPreAction.args = []
                 self._setArg(2, varName)
 
-
     def setLoginArgs(self, args):
         # Expected Format
         # Execute T24 Login {user_group}
@@ -156,7 +161,7 @@ class T24TestStep(object):
             return
 
         if args.__len__() >= 1:
-            self.AppVersion=args[0]
+            self.AppVersion = args[0]
 
     def setCreateOrAmendOrValidateArgs(self, args, stepPreActions):
         # Expected Format
@@ -189,11 +194,10 @@ class T24TestStep(object):
             return
 
         if args.__len__() >= 1:
-            self.AppVersion=args[0]
+            self.AppVersion = args[0]
 
         if args.__len__() >= 2:
             self.TransactionID = args[1]
-
 
     def setCheckRecordArgs(self, args, stepPreActions):
         # Expected Format
@@ -202,7 +206,7 @@ class T24TestStep(object):
             return
 
         if args.__len__() >= 1:
-            self.AppVersion=args[0]
+            self.AppVersion = args[0]
 
         if args.__len__() >= 2:
             self.TransactionID = args[1]
@@ -221,7 +225,7 @@ class T24TestStep(object):
             return
 
         if args.__len__() >= 1:
-            self.AppVersion=args[0]
+            self.AppVersion = args[0]
 
         if args.__len__() >= 2:
             self.setEnquiryConstraints(args[1], stepPreActions)
@@ -282,7 +286,7 @@ class T24TestStep(object):
         stepDetails.keyword = T24TestStep.getKeywordFromAction(action)
         stepDetails.args = []
 
-        return T24TestStep([],stepDetails)
+        return T24TestStep([], stepDetails)
 
     @staticmethod
     def getKeywordFromAction(action):
@@ -300,7 +304,7 @@ class T24TestStep(object):
             return 'Execute T24 Enquiry'
         elif action == 'V':
             return 'Validate T24 Record'
-        else: # todo - we have to have generic test step as a new test step type
+        else:  # todo - we have to have generic test step as a new test step type
             return 'T24 Login'
 
     def _getNameValueList(self, list):
@@ -312,7 +316,7 @@ class T24TestStep(object):
         for item in list:
             eqIdx = item.find('=')
             if eqIdx < 0:
-                return None # todo - maybe report an error?
+                return None  # todo - maybe report an error?
 
             name = item[:eqIdx].strip()
             value = item[eqIdx+1:].strip()
@@ -320,19 +324,18 @@ class T24TestStep(object):
 
         return res;
 
-    def _getEnqConstraintList(self, list):
+    def _getEnqConstraintList(self, listConstraints):
         # Expected format
         #     Short Name:EQ:=Baba    MNEMONIC:LK:=...01...
-        if list is None:
+        if listConstraints is None:
             return None
 
         res = []
-
-        for item in list:
+        for item in listConstraints:
             name, oper, value = RowUtils.ParseEnquiryRow(item)
-            res.append((name,oper,value))
+            res.append((name, oper, value))
 
-        return res;
+        return res
 
     def _getValidationRulesList(self, list):
         # so far both are with same syntax
@@ -342,18 +345,18 @@ class T24TestStep(object):
         if self._Action == 'I' or self._Action == 'V':
             self._testDataPreAction.args = []
             for td in self.TestData:
-                self._testDataPreAction.args.append('{}={}'.format(td[0], td[1]))
+                self._testDataPreAction.args.append(u'{}={}'.format(td[0], td[1]))
 
         elif self._Action == 'E':
             self._enquiryConstraintsPreAction.args = []
             for enc in self.EnquiryConstraints:
-                self._enquiryConstraintsPreAction.args.append('{} {} {}'.format(enc[0], enc[1], enc[2]))
+                self._enquiryConstraintsPreAction.args.append(u'{} {} {}'.format(enc[0], enc[1], enc[2]))
 
     def applyValidationRulesChanges(self):
         if self._Action == 'E' or self._Action == 'S':
             self._validationRulesPreAction.args = []
             for vr in self.ValidationRules:
-                self._validationRulesPreAction.args.append('{} {} {}'.format(vr[0], vr[1], vr[2]))
+                self._validationRulesPreAction.args.append(u'{} {} {}'.format(vr[0], vr[1], vr[2]))
 
     def findPreAction(self, stepPreActions, keyword, assign):
         if stepPreActions is None:

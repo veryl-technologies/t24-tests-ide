@@ -320,16 +320,16 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
                     stepPreActions = []
                     if panel:
                         panel.setIndex(stepIdx)
-                        stepIdx+=1
-                        self.m_sizerTestStepsContainer.Add(panel, 1, wx.EXPAND |wx.ALL, 5 )
+                        stepIdx += 1
+                        self.m_sizerTestStepsContainer.Add(panel, 1, wx.EXPAND | wx.ALL, 5)
 
             dummyPanel = self._createEndDummyTestStepPanel()
-            self.m_sizerTestStepsContainer.Add(dummyPanel, 1, wx.EXPAND |wx.ALL, 5 )
+            self.m_sizerTestStepsContainer.Add(dummyPanel, 1, wx.EXPAND | wx.ALL, 5)
 
             self.m_scrolledWindow2.SetSizer(self.m_sizerTestStepsContainer)
             self.m_scrolledWindow2.Layout()
 
-            self.m_sizerTestStepsContainer.FitInside( self.m_scrolledWindow2 )
+            self.m_sizerTestStepsContainer.FitInside(self.m_scrolledWindow2)
             self.m_sizerTestStepsContainer.Layout()
 
             self.Layout()
@@ -657,73 +657,73 @@ class T24TestStepPanelBase ( wx.Panel ):
 
 
     # Virtual event handlers, overide them in your derived class
-    def onNewTestStepBefore( self, event ):
+    def onNewTestStepBefore(self, event):
         event.Skip()
 
-    def onInsertLoginStep( self, event ):
+    def onInsertLoginStep(self, event):
         event.Skip()
 
-    def onInsertMenuStep( self, event ):
+    def onInsertMenuStep(self, event):
         event.Skip()
 
-    def onInsertInputStep( self, event ):
+    def onInsertInputStep(self, event):
         event.Skip()
 
-    def onInsertAuthorizeStep( self, event ):
+    def onInsertAuthorizeStep(self, event):
         event.Skip()
 
-    def onInsertSeeStep( self, event ):
+    def onInsertSeeStep(self, event):
         event.Skip()
 
-    def onInsertEnquiryStep( self, event ):
+    def onInsertEnquiryStep(self, event):
         event.Skip()
 
-    def onInsertValidateStep( self, event ):
+    def onInsertValidateStep(self, event):
         event.Skip()
 
-    def onBtnMoveUp( self, event ):
+    def onBtnMoveUp(self, event):
         event.Skip()
 
-    def onBtnMoveDown( self, event ):
+    def onBtnMoveDown(self, event):
         event.Skip()
 
-    def onActionChanged( self, event ):
+    def onActionChanged(self, event):
         event.Skip()
 
-    def onLoginUsingUserOfGroupChanged( self, event ):
+    def onLoginUsingUserOfGroupChanged(self, event):
         event.Skip()
 
-    def onTransactionChanged( self, event ):
+    def onTransactionChanged(self, event):
         event.Skip()
 
-    def onBtnDelete( self, event ):
+    def onBtnDelete(self, event):
         event.Skip()
 
-    def onTransactionIDChanged( self, event ):
+    def onTransactionIDChanged(self, event):
         event.Skip()
 
-    def onEditTestDataKeyUp( self, event ):
+    def onEditTestDataKeyUp(self, event):
         event.Skip()
 
-    def onValidationRulesKeyUp( self, event ):
+    def onValidationRulesKeyUp(self, event):
         event.Skip()
 
-    def onHowToHandleOverridesChanged( self, event ):
+    def onHowToHandleOverridesChanged(self, event):
         event.Skip()
 
-    def onHowToHandleErrorsChanged( self, event ):
+    def onHowToHandleErrorsChanged(self, event):
         event.Skip()
 
-    def onExpectedErrorContainingTextChanged( self, event ):
+    def onExpectedErrorContainingTextChanged(self, event):
         event.Skip()
 
-    def onEnquiryStepTypeChanged( self, event ):
+    def onEnquiryStepTypeChanged(self, event):
         event.Skip()
 
-    def onEnquiryActionCommandChanged( self, event ):
+    def onEnquiryActionCommandChanged(self, event):
         event.Skip()
 
-    def m_btnNewBeforeOnContextMenu( self, event ):
+    def m_btnNewBeforeOnContextMenu(self, event):
         self.m_btnNewBefore.PopupMenu( self.m_menuNewTestStepBefore, event.GetPosition() )
 
     # PASTE UI TILL HERE
@@ -736,10 +736,10 @@ class T24TestStepPanelBase ( wx.Panel ):
 class T24TestStepPanel (T24TestStepPanelBase):
 
     _testStep = None
-    _testStepsContainer = None;
+    _testStepsContainer = None
 
     def __init__(self, parent, testStepContainer, testStep):
-        T24TestStepPanelBase.__init__ ( self, parent )
+        T24TestStepPanelBase.__init__(self, parent)
         self._testStep = testStep
         self.setTestStepDetails()
         self.updateUI()
@@ -747,14 +747,13 @@ class T24TestStepPanel (T24TestStepPanelBase):
         # leave it last not to fire change events during initialization
         self._testStepsContainer = testStepContainer
 
-    def __del__( self ):
+    def __del__(self):
         pass
-
 
     def setIndex(self, idx):
         self.lblTestStepIndex.SetLabel('{}'.format(idx))
 
-    def onActionChanged( self, event ):
+    def onActionChanged(self, event):
         if self._testStep and self._testStepsContainer:
             oldAction = self._testStep.GetStepType()
             newAction = self.m_choiceTestStepAction.GetStringSelection()
@@ -773,7 +772,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep, oldSubSteps)
 
-    def onTransactionChanged( self, event ):
+    def onTransactionChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.AppVersion = self.m_txtTestStepTransaction.GetValue()
             self._testStep.applyChanges()
@@ -791,7 +790,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def onEditTestDataKeyUp( self, event ):
+    def onEditTestDataKeyUp(self, event):
         if self._testStep and self._testStepsContainer:
             if self.m_choiceTestStepAction.GetStringSelection() == 'E':
                 self._testStep.EnquiryConstraints = self.getEnqConstraintsFromUI()
@@ -806,26 +805,26 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStep.applyValidationRulesChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def onHowToHandleOverridesChanged( self, event ):
+    def onHowToHandleOverridesChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.HowToHandleOverrides = self.m_choiceHowToHandleOverrides.GetStringSelection()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def onHowToHandleErrorsChanged( self, event ):
+    def onHowToHandleErrorsChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.HowToHandleErrors = self.m_choiceHowToHandleErrors.GetStringSelection()
             self._testStep.applyChanges()
             self.updateUI()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def onExpectedErrorContainingTextChanged( self, event ):
+    def onExpectedErrorContainingTextChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.ExpectErrorContaining = self.m_txtExpectErrorContaining.GetValue()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def onEnquiryStepTypeChanged( self, event ):
+    def onEnquiryStepTypeChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.EnquiryAction = self.m_choiceEnquiryStepType.GetStringSelection()
             if self._testStep.EnquiryAction == "Action":
@@ -834,7 +833,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.updateUI()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def onEnquiryActionCommandChanged( self, event ):
+    def onEnquiryActionCommandChanged(self, event):
         if self._testStep and self._testStepsContainer and self.m_choiceEnquiryStepType.GetStringSelection() != "Check Result":
             self._testStep.EnquiryAction = self.m_txtEnquiryActionCommand.GetValue()
             self._testStep.applyChanges()
@@ -868,7 +867,6 @@ class T24TestStepPanel (T24TestStepPanelBase):
                 self.m_txtEnquiryActionCommand.SetValue(self._testStep.EnquiryAction)
 
     def updateUI(self):
-
         self.m_lblLoginUsingUserOfGroup.Hide()
         self.m_choiceLoginUsingUserOfGroup.Hide()
         self.m_txtTestStepTransaction.Show()
@@ -927,7 +925,6 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
 
-
         if self.m_choiceHowToHandleErrors.IsShown() and self.m_choiceHowToHandleErrors.GetStringSelection() == u"Expect Error Containing":
             self.m_txtExpectErrorContaining.Show(True)
         else:
@@ -966,13 +963,13 @@ class T24TestStepPanel (T24TestStepPanelBase):
         return self.m_editValidationRules.getValidationRulesFromUI()
 
     @staticmethod
-    def Warn(parent, message, caption = 'Warning!'):
+    def Warn(parent, message, caption='Warning!'):
         dlg = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_WARNING)
         dlg.ShowModal()
         dlg.Destroy()
 
     @staticmethod
-    def YesNo(parent, question, caption = 'Yes or no?', icon = wx.ICON_QUESTION):
+    def YesNo(parent, question, caption='Yes or no?', icon=wx.ICON_QUESTION):
         dlg = wx.MessageDialog(parent, question, caption, wx.YES_NO | icon)
         result = dlg.ShowModal() == wx.ID_YES
         dlg.Destroy()
@@ -982,42 +979,43 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def confirmTestStepDeletion(parent, testStepName):
         return T24TestStepPanel.YesNo(parent, "Do you really want to delete test step: '{}'?".format(testStepName), "Confirm Deletion", wx.ICON_WARNING)
 
-    def onBtnDelete( self, event ):
-        if T24TestStepPanel.confirmTestStepDeletion(self, self._testStep.toString()):
+    def onBtnDelete(self, event):
+        if T24TestStepPanel.confirmTestStepDeletion(self, self._testStep.__str__()):
             parent = self.Parent
             container = self._testStepsContainer
             testStep = self._testStep
             self.Destroy()
             parent.Layout()
             container.fireOnTestStepDeleteEvent(testStep)
+            # todo reindex the step
 
-    def onNewTestStepBefore( self, event ):
+    def onNewTestStepBefore(self, event):
         # self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep)
         self.m_btnNewBeforeOnContextMenu(event)
 
-    def onInsertLoginStep( self, event ):
+    def onInsertLoginStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Login')
 
-    def onInsertMenuStep( self, event ):
+    def onInsertMenuStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'M')
 
-    def onInsertInputStep( self, event ):
+    def onInsertInputStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'I')
 
-    def onInsertAuthorizeStep( self, event ):
+    def onInsertAuthorizeStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'A')
 
-    def onInsertSeeStep( self, event ):
+    def onInsertSeeStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'S')
 
-    def onInsertEnquiryStep( self, event ):
+    def onInsertEnquiryStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'E')
 
-    def onInsertValidateStep( self, event ):
+    def onInsertValidateStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'V')
 
-    def onBtnMoveUp( self, event ):
+    def onBtnMoveUp(self, event):
         self._testStepsContainer.fireOnTestStepMoveUpEvent(self._testStep)
 
-    def onBtnMoveDown( self, event ):
+    def onBtnMoveDown(self, event):
         self._testStepsContainer.fireOnTestStepMoveDownEvent(self._testStep)
