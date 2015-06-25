@@ -65,23 +65,26 @@ class TestStepEventListener:
 class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
     title = 'Test Steps'
 
+    # todo this should be there but causes problems with deleting of test steps
+    # tabJustChanged = False
+
     def __init__(self, application):
         Plugin.__init__(self, application)
         self._editor_component = None
 
     def onTestStepCreated(self, testStep, insertBeforeTestStep):
-        if insertBeforeTestStep: # insert before
+        if insertBeforeTestStep:  # insert before
             idx = self._current_test_case.steps.index(insertBeforeTestStep.subSteps()[0])
             for subStep in testStep.subSteps():
                 self._current_test_case.steps.insert(idx, subStep)
-                idx+=1
-        else: # last one
+                idx += 1
+        else:  # last one
             for subStep in testStep.subSteps():
                 self._current_test_case.steps.append(subStep)
 
         self.tree.get_selected_datafile_controller().mark_dirty()
 
-    def onTestStepChanged(self, testStep, oldSubSteps = None):
+    def onTestStepChanged(self, testStep, oldSubSteps=None):
         if oldSubSteps and oldSubSteps.__len__() > 1:
             # remove old pre steps
             for oldSubStep in oldSubSteps[:oldSubSteps.__len__() - 1]:
@@ -108,7 +111,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
             firsSubStep = testStep.subSteps()[0]
             firsSubStepIdx = self._current_test_case.steps.index(firsSubStep)
             if firsSubStepIdx > 0:
-                previousStepIndex = firsSubStepIdx - 1;
+                previousStepIndex = firsSubStepIdx - 1
                 while(previousStepIndex > 0 and not T24TestStep.isT24TestStep(self._current_test_case.steps[previousStepIndex - 1]) ):
                     previousStepIndex -= 1
 
@@ -184,7 +187,7 @@ class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
         pass
         #if self.is_focused():
             # self._editor.save()
-            # NOTE: All of the changes must be executed by T24TestStepPanel and its _testStep memner
+            # NOTE: All of the changes must be executed by T24TestStepPanel and its testStep member
             #controller = self.tree.get_selected_datafile_controller()
             #bub = self._current_test_case
             #controller.datafile.testcase_table.test
