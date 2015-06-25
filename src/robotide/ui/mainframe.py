@@ -96,7 +96,7 @@ class RideFrame(wx.Frame, RideEventHandler):
         self.SetTitle(self._create_title(message))
 
     def _create_title(self, message):
-        title = 'RIDE'
+        title = 'T24 Test Studio'
         if message:
             item = message.item
             title += ' - ' + item.datafile.name
