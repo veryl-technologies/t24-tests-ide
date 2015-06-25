@@ -418,7 +418,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_btnNewBefore = wx.Button( self, wx.ID_ANY, u"+", wx.DefaultPosition, wx.Size( 22,22 ), 0 )
         self.m_btnNewBefore.SetFont( wx.Font( 10, 74, 90, 92, False, "Arial Black" ) )
         self.m_btnNewBefore.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHTTEXT ) )
-        self.m_btnNewBefore.SetBackgroundColour( wx.Colour( 0, 128, 0 ) )
+        self.m_btnNewBefore.SetBackgroundColour( wx.Colour( 0, 163, 255 ) )
         self.m_btnNewBefore.SetToolTipString( u"Create and insert new test step before current one" )
 
         self.m_menuNewTestStepBefore = wx.Menu()
