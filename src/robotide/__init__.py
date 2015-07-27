@@ -73,7 +73,8 @@ def main(*args):
         print __doc__
         sys.exit()
     try:
-        _run(inpath, not noupdatecheck, debug_console)
+        #  _run(inpath, not noupdatecheck, debug_console) we don't support auto-update
+        _run(inpath, False, debug_console)
     except DataError, err:
         print str(err) + '\n\nUse --help to get usage information.'
 
@@ -85,7 +86,7 @@ def _parse_args(args):
     inpath = args[-1] if args[-1] not in ['--noupdatecheck', '--debugconsole'] else None
     return noupdatecheck, debug_console, inpath
 
-def _run(inpath=None, updatecheck=True, debug_console=False):
+def _run(inpath=None, updatecheck=False, debug_console=False):
     try:
         from robotide.application import RIDE
     except ImportError:
