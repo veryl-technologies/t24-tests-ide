@@ -3,9 +3,9 @@ __author__ = 'Zhelev'
 from robot.parsing.model import Step
 from robotide.tip_api.tiplexer import RowUtils
 
+
 # todo - need to build test steps inheritance
 class T24TestStep(object):
-
     # consts
     keyword_L = 'T24 Login'
     keyword_M = 'Execute T24 Menu Command'
@@ -19,9 +19,9 @@ class T24TestStep(object):
     _stepDetails = None
 
     # properties
-    _Action = ''
-    AppVersion = ''
-    TransactionID = ''
+    _Action = ''   # the step type
+    AppVersion = ''   # the T24 application and version
+    TransactionID = ''   # the T24 record ID
 
     TestData = []
     EnquiryConstraints = []
@@ -103,17 +103,17 @@ class T24TestStep(object):
             self._enquiryConstraintsPreAction = None
             self._validationRulesPreAction = None
             if self._testDataPreAction is None:
-                testDataVarName = '@{testDataFields1}'
+                testDataVarName = '@{testDataFields}'
                 self._testDataPreAction = Step('')
                 self._testDataPreAction.keyword = 'Create List'
-                self._testDataPreAction.assign =[testDataVarName + '=']
+                self._testDataPreAction.assign = [testDataVarName + '=']
                 self._testDataPreAction.args = []
                 self._setArg(1, testDataVarName)
 
         elif self._Action == 'E':
             self._testDataPreAction = None
             if self._enquiryConstraintsPreAction is None:
-                enqVarName = '@{enquiryConstraints1}'
+                enqVarName = '@{enquiryConstraints}'
                 self._enquiryConstraintsPreAction = Step('')
                 self._enquiryConstraintsPreAction.keyword = 'Create List'
                 self._enquiryConstraintsPreAction.assign = [enqVarName + '=']
@@ -121,7 +121,7 @@ class T24TestStep(object):
                 self._setArg(1, enqVarName)
 
             if self._validationRulesPreAction is None:
-                varName = '@{validationRules1}'
+                varName = '@{validationRules}'
                 self._validationRulesPreAction = Step('')
                 self._validationRulesPreAction.keyword = 'Create List'
                 self._validationRulesPreAction.assign = [varName + '=']
@@ -133,7 +133,7 @@ class T24TestStep(object):
             self._enquiryConstraintsPreAction = None
 
             if self._validationRulesPreAction is None:
-                varName = '@{validationRules1}'
+                varName = '@{validationRules}'
                 self._validationRulesPreAction = Step('')
                 self._validationRulesPreAction.keyword = 'Create List'
                 self._validationRulesPreAction.assign = [varName + '=']
@@ -151,7 +151,7 @@ class T24TestStep(object):
             return
 
         if args.__len__() >= 1:
-            self.AppVersion=args[0]
+            self.AppVersion = args[0]
 
     def setMenuArgs(self, args):
         # Expected Format
@@ -319,8 +319,8 @@ class T24TestStep(object):
                 return None  # todo - maybe report an error?
 
             name = item[:eqIdx].strip()
-            value = item[eqIdx+1:].strip()
-            res.append((name,value))
+            value = item[eqIdx + 1:].strip()
+            res.append((name, value))
 
         return res;
 
@@ -406,7 +406,7 @@ class T24TestStep(object):
             self.HowToHandleErrors = arg
         else:
             self.HowToHandleErrors = arg[:pos].strip()
-            self.ExpectErrorContaining = arg[(pos+1):].strip()
+            self.ExpectErrorContaining = arg[(pos + 1):].strip()
 
     def _getHowToHandleErrors(self):
         result = ''
