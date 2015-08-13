@@ -108,7 +108,7 @@ class T24TestStep(object):
                 self._testDataPreAction.keyword = 'Create List'
                 self._testDataPreAction.assign = [testDataVarName + '=']
                 self._testDataPreAction.args = []
-                self._setArg(1, testDataVarName)
+                self._setArg(2, testDataVarName.replace("@", "$"))
 
         elif self._Action == 'E':
             self._testDataPreAction = None
@@ -118,7 +118,7 @@ class T24TestStep(object):
                 self._enquiryConstraintsPreAction.keyword = 'Create List'
                 self._enquiryConstraintsPreAction.assign = [enqVarName + '=']
                 self._enquiryConstraintsPreAction.args = []
-                self._setArg(1, enqVarName)
+                self._setArg(1, enqVarName.replace("@", "$"))
 
             if self._validationRulesPreAction is None:
                 varName = '@{validationRules}'
@@ -126,7 +126,7 @@ class T24TestStep(object):
                 self._validationRulesPreAction.keyword = 'Create List'
                 self._validationRulesPreAction.assign = [varName + '=']
                 self._validationRulesPreAction.args = []
-                self._setArg(3, varName)
+                self._setArg(3, varName.replace("@", "$"))
 
         elif self._Action == 'S':
             self._testDataPreAction = None
@@ -138,7 +138,7 @@ class T24TestStep(object):
                 self._validationRulesPreAction.keyword = 'Create List'
                 self._validationRulesPreAction.assign = [varName + '=']
                 self._validationRulesPreAction.args = []
-                self._setArg(2, varName)
+                self._setArg(2, varName.replace("@", "$"))
 
     def setLoginArgs(self, args):
         # Expected Format
@@ -179,13 +179,16 @@ class T24TestStep(object):
             self.AppVersion = args[0]
 
         if args.__len__() >= 2:
-            self.setRecordFieldValues(args[1], stepPreActions)
+            self.TransactionID = args[1]
 
         if args.__len__() >= 3:
-            self.HowToHandleOverrides = args[2]
+            self.setRecordFieldValues(args[2], stepPreActions)
 
         if args.__len__() >= 4:
-            self._setHowToHandleErrors(args[3])
+            self.HowToHandleOverrides = args[3]
+
+        if args.__len__() >= 5:
+            self._setHowToHandleErrors(args[4])
 
     def setAuthorizeArgs(self, args):
         # Expected Format
@@ -358,12 +361,12 @@ class T24TestStep(object):
             for vr in self.ValidationRules:
                 self._validationRulesPreAction.args.append(u'{} {} {}'.format(vr[0], vr[1], vr[2]))
 
-    def findPreAction(self, stepPreActions, keyword, assign):
+    def findPreAction(self, stepPreActions, keyword, variable):
         if stepPreActions is None:
             return None
 
         for pa in stepPreActions:
-            if pa.keyword == keyword and pa.assign is not None and pa.assign[0] == "{}=".format(assign):
+            if pa.keyword == keyword and pa.assign is not None and pa.assign[0] == "{}=".format(variable.replace("$", "@", 1)):
                 return pa
 
         return None
@@ -377,8 +380,9 @@ class T24TestStep(object):
             self._stepDetails.keyword = self.keyword_M
         elif self._Action == 'I':
             self._stepDetails.keyword = self.keyword_I
-            self._setArg(2, self.HowToHandleOverrides)
-            self._setArg(3, self._getHowToHandleErrors())
+            self._setArg(1, self.TransactionID)
+            self._setArg(3, self.HowToHandleOverrides)
+            self._setArg(4, self._getHowToHandleErrors())
         elif self._Action == 'A':
             self._stepDetails.keyword = self.keyword_A
             self._setArg(1, self.TransactionID)
@@ -387,8 +391,8 @@ class T24TestStep(object):
             self._setArg(1, self.TransactionID)
         elif self._Action == 'V':
             self._stepDetails.keyword = self.keyword_V
-            self._setArg(2, self.HowToHandleOverrides)
-            self._setArg(3, self._getHowToHandleErrors())
+            self._setArg(3, self.HowToHandleOverrides)
+            self._setArg(4, self._getHowToHandleErrors())
         elif self._Action == 'E':
             self._stepDetails.keyword = self.keyword_E
             self._setArg(2, self.EnquiryAction)
