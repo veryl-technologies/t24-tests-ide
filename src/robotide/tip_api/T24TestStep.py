@@ -335,8 +335,9 @@ class T24TestStep(object):
 
         res = []
         for item in listConstraints:
-            name, oper, value = RowUtils.ParseEnquiryRow(item)
-            res.append((name, oper, value))
+            if item.strip():
+                name, oper, value = RowUtils.ParseEnquiryRow(item)
+                res.append((name, oper, value))
 
         return res
 
