@@ -604,7 +604,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerEnquiryType = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Enquiry Step type" ), wx.VERTICAL )
 
-        m_choiceEnquiryStepTypeChoices = [ u"Check Result", u"Action" ]
+        m_choiceEnquiryStepTypeChoices = [ u"Check Result", u"Read Data", u"Action" ]
         self.m_choiceEnquiryStepType = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceEnquiryStepTypeChoices, 0 )
         self.m_choiceEnquiryStepType.SetSelection( 0 )
         self.m_sizerEnquiryType.Add( self.m_choiceEnquiryStepType, 0, wx.ALIGN_RIGHT, 5 )
@@ -830,14 +830,18 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def onEnquiryStepTypeChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.EnquiryAction = self.m_choiceEnquiryStepType.GetStringSelection()
-            if self._testStep.EnquiryAction == "Action":
-                self._testStep.EnquiryAction == ""  # if action is selected we need real action to be inputted in the self.m_txtEnquiryActionCommand
+            if self._testStep.EnquiryAction == u"Action":
+                self._testStep.EnquiryAction = self.m_txtEnquiryActionCommand  # TODO maybe it's empty
+                self.m_editValidationRules.set_enabled(False)
+            else:
+                self.m_editValidationRules.set_enabled(True)
+
             self._testStep.applyChanges()
             self.updateUI()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onEnquiryActionCommandChanged(self, event):
-        if self._testStep and self._testStepsContainer and self.m_choiceEnquiryStepType.GetStringSelection() != "Check Result":
+        if self._testStep and self._testStepsContainer and self.m_choiceEnquiryStepType.GetStringSelection() == u"Action":
             self._testStep.EnquiryAction = self.m_txtEnquiryActionCommand.GetValue()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
@@ -863,10 +867,12 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_choiceHowToHandleOverrides.SetStringSelection(self._testStep.HowToHandleOverrides)
 
         if self._testStep.EnquiryAction and len(self._testStep.EnquiryAction) > 0:
-            if self._testStep.EnquiryAction == "Check Result":
+            if self._testStep.EnquiryAction == u"Check Result":
+                self.m_choiceEnquiryStepType.SetStringSelection(self._testStep.EnquiryAction)
+            elif self._testStep.EnquiryAction == u"Read Data":
                 self.m_choiceEnquiryStepType.SetStringSelection(self._testStep.EnquiryAction)
             else:
-                self.m_choiceEnquiryStepType.SetStringSelection("Action")
+                self.m_choiceEnquiryStepType.SetStringSelection(u"Action")
                 self.m_txtEnquiryActionCommand.SetValue(self._testStep.EnquiryAction)
 
     def updateUI(self):
@@ -921,7 +927,8 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerValidationHolder.ShowItems(True)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Enquiry Constraints')
             self.setEnquiryConstraints(self._testStep.EnquiryConstraints)
-            self.setValidationRules(self._testStep.ValidationRules)
+            if self.m_choiceEnquiryStepType.IsShown() and self.m_choiceEnquiryStepType.GetStringSelection() != u"Action":
+                self.setValidationRules(self._testStep.ValidationRules)
 
         #todo - rest of test cases. It would be good to add generic test step or sth like that
         else:
@@ -938,9 +945,25 @@ class T24TestStepPanel (T24TestStepPanelBase):
         else:
             self.m_txtEnquiryActionCommand.Show(False)
 
+        if self.m_choiceEnquiryStepType.IsShown():
+            self.updateValidationsHolderForEnquiry()
+
         #self.Update()
         self.m_panelTestStepContents.Layout()
         self.Layout()
+
+    def updateValidationsHolderForEnquiry(self):
+        if self.m_choiceEnquiryStepType.GetStringSelection() == u"Check Result":
+            # self.m_sizerValidationHolder.ShowItems(True)
+            self.m_sizerValidationHolder.StaticBox.SetLabel(u"Validation Rules for the First Row in Enquiry Result")
+        elif self.m_choiceEnquiryStepType.GetStringSelection() == u"Read Data":
+            # self.m_sizerValidationHolder.ShowItems(True)
+            self.m_sizerValidationHolder.StaticBox.SetLabel(u"Values to Retrieve from First Row in Enquiry Result (column indexes)")
+        else:
+            self.m_sizerValidationHolder.StaticBox.SetLabel(u"")
+            # self.m_sizerValidationHolder.ShowItems(False) # resizing is problematic
+
+        # self.m_sizerValidationHolder.Layout()
 
     def setLoginUsingUserOfGroupChoices(self):
         self.m_choiceLoginUsingUserOfGroup.Clear()
