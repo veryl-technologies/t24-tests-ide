@@ -33,7 +33,7 @@ from robotide.application.releasenotes import ReleaseNotes
 
 class RIDE(wx.App):
 
-    def __init__(self, path=None, updatecheck=True):
+    def __init__(self, path=None, updatecheck=False):
         self._initial_path = path
         self._updatecheck = updatecheck
         context.APP = self
