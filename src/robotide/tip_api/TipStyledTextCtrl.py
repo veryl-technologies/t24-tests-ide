@@ -35,7 +35,7 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         self._register_shortcuts(self)
 
     def _create_font(self):
-        font=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
         if not font.IsFixedWidth():
             # fixed width fonts are typically a little bigger than their variable width
             # peers so subtract one from the point size.
@@ -87,9 +87,10 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            nameValue = RowUtils.ParseTestDataRow(line)
-            if nameValue:
-                res.append(nameValue)
+            if line.strip():
+                nameValue = RowUtils.ParseTestDataRow(line)
+                if nameValue:
+                    res.append(nameValue)
 
         return res
 
@@ -97,9 +98,10 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            nameOperValue = RowUtils.ParseEnquiryRow(line)
-            if nameOperValue:
-                res.append(nameOperValue)
+            if line.strip():
+                nameOperValue = RowUtils.ParseEnquiryRow(line)
+                if nameOperValue:
+                    res.append(nameOperValue)
 
         return res
 
@@ -108,14 +110,24 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            nameOperValue = RowUtils.ParseEnquiryRow(line)
-            if nameOperValue:
-                res.append(nameOperValue)
+            if line.strip():
+                nameOperValue = RowUtils.ParseEnquiryRow(line)
+                if nameOperValue:
+                    res.append(nameOperValue)
 
         return res
 
+    def set_enabled(self, enabled):
+        if enabled:
+            self.StyleResetDefault()
+            self.SetReadOnly(False)
+        else:
+            self.StyleSetBackground(wx.stc.STC_STYLE_DEFAULT, (240, 240, 240))
+            self.ClearAll()
+            self.SetReadOnly(True)
+
     def set_text(self, text):
-        self.SetReadOnly(False)
+        self.set_enabled(True)
         self.SetText(text)
         self.stylizer.stylize()
         self.EmptyUndoBuffer()
