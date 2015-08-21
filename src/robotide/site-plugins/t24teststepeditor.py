@@ -63,6 +63,8 @@ class TestStepEventListener:
         pass
 
 class T24EditorPlugin(Plugin, TreeAwarePluginMixin, TestStepEventListener):
+    """A plugin for editing test steps within a specialized Temenos T24-specific interface.
+    This plugin shows a tab 'Test Steps' where the user can create/edit/move/delete T24 test steps."""
     title = 'Test Steps'
 
     # todo this should be there but causes problems with deleting of test steps
