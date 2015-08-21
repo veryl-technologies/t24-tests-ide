@@ -73,7 +73,10 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
 
         text = ''
         for attr in enquiryConstraints:
-            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+            if attr[1] or attr[1].strip():
+                text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+            else:
+                text += attr[0] + '\r\n'
 
         self.set_text(text)
 
@@ -85,7 +88,10 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
 
         text = ''
         for attr in validationRules:
-            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+            if attr[1] or attr[1].strip():
+                text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+            else:
+                text += attr[0] + '\r\n'
 
         self.set_text(text)
 
@@ -93,7 +99,8 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            if line.strip():
+            line = line.strip()
+            if line:
                 nameValue = RowUtils.ParseTestDataRow(line)
                 if nameValue:
                     res.append(nameValue)
@@ -104,7 +111,8 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            if line.strip():
+            line = line.strip()
+            if line:
                 nameOperValue = RowUtils.ParseEnquiryRow(line)
                 if nameOperValue:
                     res.append(nameOperValue)
@@ -116,7 +124,8 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            if line.strip():
+            line = line.strip()
+            if line:
                 nameOperValue = RowUtils.ParseEnquiryRow(line)
                 if nameOperValue:
                     res.append(nameOperValue)

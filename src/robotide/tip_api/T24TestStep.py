@@ -354,13 +354,19 @@ class T24TestStep(object):
         elif self._Action == 'E':
             self._enquiryConstraintsPreAction.args = []
             for enc in self.EnquiryConstraints:
-                self._enquiryConstraintsPreAction.args.append(u'{} {} {}'.format(enc[0], enc[1], enc[2]))
+                if enc[1] or enc[1].strip():
+                    self._enquiryConstraintsPreAction.args.append(u'{} {} {}'.format(enc[0], enc[1], enc[2]))
+                else:
+                    self._enquiryConstraintsPreAction.args.append(u'{}'.format(enc[0]))
 
     def applyValidationRulesChanges(self):
         if self._Action == 'E' or self._Action == 'S':
             self._validationRulesPreAction.args = []
             for vr in self.ValidationRules:
-                self._validationRulesPreAction.args.append(u'{} {} {}'.format(vr[0], vr[1], vr[2]))
+                if vr[1] and vr[1].strip():
+                    self._validationRulesPreAction.args.append(u'{} {} {}'.format(vr[0], vr[1], vr[2]))
+                else:
+                    self._validationRulesPreAction.args.append(u'{}'.format(vr[0]))
 
     def findPreAction(self, stepPreActions, keyword, variable):
         if stepPreActions is None:
