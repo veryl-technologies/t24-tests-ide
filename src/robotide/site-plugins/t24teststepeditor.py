@@ -647,8 +647,8 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_txtTestStepTransaction.Bind( wx.EVT_TEXT, self.onTransactionChanged )
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
         self.m_txtTransactionID.Bind( wx.EVT_TEXT, self.onTransactionIDChanged )
-        self.m_editTestData.Bind( wx.EVT_KEY_UP, self.onEditTestDataKeyUp )
-        self.m_editValidationRules.Bind( wx.EVT_KEY_UP, self.onValidationRulesKeyUp )
+        self.m_editTestData.Bind( wx.stc.EVT_STC_CHANGE, self.onEditTestDataChanged )
+        self.m_editValidationRules.Bind( wx.stc.EVT_STC_CHANGE, self.onValidationRulesChanged )
         self.m_choiceHowToHandleOverrides.Bind( wx.EVT_CHOICE, self.onHowToHandleOverridesChanged )
         self.m_choiceHowToHandleErrors.Bind( wx.EVT_CHOICE, self.onHowToHandleErrorsChanged )
         self.m_txtExpectErrorContaining.Bind( wx.EVT_TEXT, self.onExpectedErrorContainingTextChanged )
@@ -705,10 +705,10 @@ class T24TestStepPanelBase ( wx.Panel ):
     def onTransactionIDChanged(self, event):
         event.Skip()
 
-    def onEditTestDataKeyUp(self, event):
+    def onEditTestDataChanged(self, event):
         event.Skip()
 
-    def onValidationRulesKeyUp(self, event):
+    def onValidationRulesChanged(self, event):
         event.Skip()
 
     def onHowToHandleOverridesChanged(self, event):
@@ -793,7 +793,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def onEditTestDataKeyUp(self, event):
+    def onEditTestDataChanged(self, event):
         if self._testStep and self._testStepsContainer:
             if self.m_choiceTestStepAction.GetStringSelection() == 'E':
                 self._testStep.EnquiryConstraints = self.getEnqConstraintsFromUI()
@@ -802,7 +802,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStep.applyTestDataOrEnqConstraintChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
-    def onValidationRulesKeyUp(self, event):
+    def onValidationRulesChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.ValidationRules = self.getValidationRulesFromUI()
             self._testStep.applyValidationRulesChanges()

@@ -32,6 +32,12 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         self.Bind(stc.EVT_STC_STYLENEEDED, self.OnStyle)
         self.stylizer = TypStylizer(self, font)
 
+        # We don't need all wx.stc.EVT_STC_CHANGE events -> just those notify for actual changes in the text
+        self.SetModEventMask(wx.stc.STC_MOD_INSERTTEXT |
+                    wx.stc.STC_MOD_DELETETEXT |
+                    wx.stc.STC_PERFORMED_UNDO |
+                    wx.stc.STC_PERFORMED_REDO)
+
         self._register_shortcuts(self)
 
     def _create_font(self):
