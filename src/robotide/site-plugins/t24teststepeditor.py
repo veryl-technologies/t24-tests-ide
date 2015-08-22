@@ -424,25 +424,25 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_btnNewBefore.SetToolTipString( u"Create and insert new test step before current one" )
 
         self.m_menuNewTestStepBefore = wx.Menu()
-        self.m_menuItemNewLoginStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Login Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewLoginStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&L - Login in T24", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewLoginStepBefore )
 
-        self.m_menuItemNewMenuStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Menu Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewMenuStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&M - Go to a T24 Menu", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewMenuStepBefore )
 
-        self.m_menuItemNewInputStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Input Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewInputStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&I - Input T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewInputStepBefore )
 
-        self.m_menuItemNewAuthorizeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Authorize Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewAuthorizeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&A - Authorize T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewAuthorizeStepBefore )
 
-        self.m_menuItemNewSeeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&See Step", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewSeeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&S - See and Verify T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewSeeStepBefore )
 
-        self.m_menuItemNewEnquiryStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Enquiry", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewEnquiryStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&E - Run and Verify T24 &Enquiry", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewEnquiryStepBefore )
 
-        self.m_menuItemNewValidateStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Validate", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewValidateStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&V - Validate T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewValidateStepBefore )
 
         self.m_btnNewBefore.Bind( wx.EVT_RIGHT_DOWN, self.m_btnNewBeforeOnContextMenu )
