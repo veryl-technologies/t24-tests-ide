@@ -900,7 +900,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
         elif self._testStep.GetStepType() == 'I':
-            self.m_sizerTransactionID.ShowItems(False)
+            self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(True)
             self.m_sizerEnquiryType.ShowItems(False)
             self.m_sizerValidationHolder.ShowItems(False)
