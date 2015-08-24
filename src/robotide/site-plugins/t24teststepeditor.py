@@ -861,10 +861,12 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_txtTestStepTransaction.SetValue(self._testStep.AppVersion)
 
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
+
         if self._testStep.HowToHandleErrors and len(self._testStep.HowToHandleErrors) > 0:
             self.m_choiceHowToHandleErrors.SetStringSelection(self._testStep.HowToHandleErrors)
         if self._testStep.ExpectErrorContaining and len(self._testStep.ExpectErrorContaining) > 0:
             self.m_txtExpectErrorContaining.SetValue(self._testStep.ExpectErrorContaining)
+
         if self._testStep.HowToHandleOverrides and len(self._testStep.HowToHandleOverrides) > 0:
             self.m_choiceHowToHandleOverrides.SetStringSelection(self._testStep.HowToHandleOverrides)
 
@@ -907,14 +909,6 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerHandleErrors.ShowItems(True)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Test Data')
             self.setTestData(self._testStep.TestData)
-        elif self._testStep.GetStepType() == 'A':
-            self.m_sizerTransactionID.ShowItems(True)
-            self.m_sizerTestData.ShowItems(False)
-        elif self._testStep.GetStepType() == 'S':
-            self.m_sizerTransactionID.ShowItems(True)
-            self.m_sizerTestData.ShowItems(False)
-            self.m_sizerValidationHolder.ShowItems(True)
-            self.setValidationRules(self._testStep.ValidationRules)
         elif self._testStep.GetStepType() == 'V':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
@@ -923,6 +917,14 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerHandleErrors.ShowItems(True)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Test Data')
             self.setTestData(self._testStep.TestData)
+        elif self._testStep.GetStepType() == 'A':
+            self.m_sizerTransactionID.ShowItems(True)
+            self.m_sizerTestData.ShowItems(False)
+        elif self._testStep.GetStepType() == 'S':
+            self.m_sizerTransactionID.ShowItems(True)
+            self.m_sizerTestData.ShowItems(False)
+            self.m_sizerValidationHolder.ShowItems(True)
+            self.setValidationRules(self._testStep.ValidationRules)
         elif self._testStep.GetStepType() == 'E':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
