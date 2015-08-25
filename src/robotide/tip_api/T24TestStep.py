@@ -11,7 +11,7 @@ class T24TestStep(object):
     keyword_M = 'Execute T24 Menu Command'
     keyword_I = 'Create Or Amend T24 Record'
     keyword_A = 'Authorize T24 Record'
-    keyword_S = 'Check T24 Record Exists'
+    keyword_S = 'Check T24 Record'
     keyword_E = 'Execute T24 Enquiry'
     keyword_V = 'Validate T24 Record'
 
@@ -302,7 +302,7 @@ class T24TestStep(object):
         elif action == 'A':
             return 'Authorize T24 Record'
         elif action == 'S':
-            return 'Check T24 Record Exists'
+            return 'Check T24 Record'
         elif action == 'E':
             return 'Execute T24 Enquiry'
         elif action == 'V':
