@@ -1,7 +1,7 @@
 __author__ = 'Zhelev'
 
 from robot.parsing.model import Step
-from robotide.tip_api.tiplexer import RowUtils
+from tiplexer import RowUtils
 
 
 # todo - need to build test steps inheritance
@@ -204,7 +204,7 @@ class T24TestStep(object):
 
     def setCheckRecordArgs(self, args, stepPreActions):
         # Expected Format
-        # Check T24 Record Exists {application,version} {recordID} {validation rules}
+        # Check T24 Record {application,version} {recordID} {validation rules}
         if not args:
             return
 
@@ -221,7 +221,7 @@ class T24TestStep(object):
         # Expected Format
         # Execute T24 Enquiry {Enquiry Name} {constraints - post & pre} {action} {validation rules}
         #
-        # {action} can be real enquiry action or 'Check Values'
+        # {action} can be real enquiry action or 'Check Result'
         #
         #
         if not args:
