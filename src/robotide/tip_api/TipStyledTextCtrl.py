@@ -196,28 +196,27 @@ class TypStylizer(object):
         self.lexer.setTestDataSyntax(isTestData)
 
     def _set_styles(self):
-        #color_settings = self.settings.get_without_default('Text Edit Colors')
-
+        # see colors http://xoomer.virgilio.it/infinity77/wxPython/Widgets/wx.ColourDatabase.html
         styles = {
             tiplexer.FIELDNAME: {
-                'fore': 'black' #color_settings['argument']
+                'fore': 'firebrick'
             },
             tiplexer.OPERATOR: {
-                'fore': 'blue', #color_settings['comment']
+                'fore': 'blue',
                 'bold': 'true'
             },
             tiplexer.VALUECONST: {
-                'fore': 'black' #color_settings['error']
+                'fore': 'MEDIUM SEA GREEN'
             },
             tiplexer.VALUEVARIABLE: {
-                'fore': 'darkblue' # '#00008B'#color_settings['gherkin']
+                'fore': 'purple'
             },
             tiplexer.ERROR: {
-                'fore': 'red', #color_settings['heading'],
+                'fore': 'red',
                 'bold': 'true'
             },
             tiplexer.SEPARATOR: {
-                'fore': 'black' #color_settings['argument']
+                'fore': 'black'
             },
         }
         self.tokens = {}
