@@ -1,17 +1,17 @@
 __author__ = 'Zhelev'
 
 from robot.parsing.model import Step
-from robotide.tip_api.tiplexer import RowUtils
+from tiplexer import RowUtils
+
 
 # todo - need to build test steps inheritance
 class T24TestStep(object):
-
     # consts
     keyword_L = 'T24 Login'
     keyword_M = 'Execute T24 Menu Command'
     keyword_I = 'Create Or Amend T24 Record'
     keyword_A = 'Authorize T24 Record'
-    keyword_S = 'Check T24 Record Exists'
+    keyword_S = 'Check T24 Record'
     keyword_E = 'Execute T24 Enquiry'
     keyword_V = 'Validate T24 Record'
 
@@ -19,9 +19,9 @@ class T24TestStep(object):
     _stepDetails = None
 
     # properties
-    _Action = ''
-    AppVersion = ''
-    TransactionID = ''
+    _Action = ''   # the step type
+    AppVersion = ''   # the T24 application and version
+    TransactionID = ''   # the T24 record ID
 
     TestData = []
     EnquiryConstraints = []
@@ -103,42 +103,42 @@ class T24TestStep(object):
             self._enquiryConstraintsPreAction = None
             self._validationRulesPreAction = None
             if self._testDataPreAction is None:
-                testDataVarName = '@{testDataFields1}'
+                testDataVarName = '@{testDataFields}'
                 self._testDataPreAction = Step('')
                 self._testDataPreAction.keyword = 'Create List'
-                self._testDataPreAction.assign =[testDataVarName + '=']
+                self._testDataPreAction.assign = [testDataVarName + '=']
                 self._testDataPreAction.args = []
-                self._setArg(1, testDataVarName)
+                self._setArg(2, testDataVarName.replace("@", "$"))
 
         elif self._Action == 'E':
             self._testDataPreAction = None
             if self._enquiryConstraintsPreAction is None:
-                enqVarName = '@{enquiryConstraints1}'
+                enqVarName = '@{enquiryConstraints}'
                 self._enquiryConstraintsPreAction = Step('')
                 self._enquiryConstraintsPreAction.keyword = 'Create List'
                 self._enquiryConstraintsPreAction.assign = [enqVarName + '=']
                 self._enquiryConstraintsPreAction.args = []
-                self._setArg(1, enqVarName)
+                self._setArg(1, enqVarName.replace("@", "$"))
 
             if self._validationRulesPreAction is None:
-                varName = '@{validationRules1}'
+                varName = '@{validationRules}'
                 self._validationRulesPreAction = Step('')
                 self._validationRulesPreAction.keyword = 'Create List'
                 self._validationRulesPreAction.assign = [varName + '=']
                 self._validationRulesPreAction.args = []
-                self._setArg(3, varName)
+                self._setArg(3, varName.replace("@", "$"))
 
         elif self._Action == 'S':
             self._testDataPreAction = None
             self._enquiryConstraintsPreAction = None
 
             if self._validationRulesPreAction is None:
-                varName = '@{validationRules1}'
+                varName = '@{validationRules}'
                 self._validationRulesPreAction = Step('')
                 self._validationRulesPreAction.keyword = 'Create List'
                 self._validationRulesPreAction.assign = [varName + '=']
                 self._validationRulesPreAction.args = []
-                self._setArg(2, varName)
+                self._setArg(2, varName.replace("@", "$"))
 
     def setLoginArgs(self, args):
         # Expected Format
@@ -151,7 +151,7 @@ class T24TestStep(object):
             return
 
         if args.__len__() >= 1:
-            self.AppVersion=args[0]
+            self.AppVersion = args[0]
 
     def setMenuArgs(self, args):
         # Expected Format
@@ -179,13 +179,16 @@ class T24TestStep(object):
             self.AppVersion = args[0]
 
         if args.__len__() >= 2:
-            self.setRecordFieldValues(args[1], stepPreActions)
+            self.TransactionID = args[1]
 
         if args.__len__() >= 3:
-            self.HowToHandleOverrides = args[2]
+            self.setRecordFieldValues(args[2], stepPreActions)
 
         if args.__len__() >= 4:
-            self._setHowToHandleErrors(args[3])
+            self.HowToHandleOverrides = args[3]
+
+        if args.__len__() >= 5:
+            self._setHowToHandleErrors(args[4])
 
     def setAuthorizeArgs(self, args):
         # Expected Format
@@ -201,7 +204,7 @@ class T24TestStep(object):
 
     def setCheckRecordArgs(self, args, stepPreActions):
         # Expected Format
-        # Check T24 Record Exists {application,version} {recordID} {validation rules}
+        # Check T24 Record {application,version} {recordID} {validation rules}
         if not args:
             return
 
@@ -218,7 +221,7 @@ class T24TestStep(object):
         # Expected Format
         # Execute T24 Enquiry {Enquiry Name} {constraints - post & pre} {action} {validation rules}
         #
-        # {action} can be real enquiry action or 'Check Values'
+        # {action} can be real enquiry action or 'Check Result'
         #
         #
         if not args:
@@ -299,7 +302,7 @@ class T24TestStep(object):
         elif action == 'A':
             return 'Authorize T24 Record'
         elif action == 'S':
-            return 'Check T24 Record Exists'
+            return 'Check T24 Record'
         elif action == 'E':
             return 'Execute T24 Enquiry'
         elif action == 'V':
@@ -319,8 +322,8 @@ class T24TestStep(object):
                 return None  # todo - maybe report an error?
 
             name = item[:eqIdx].strip()
-            value = item[eqIdx+1:].strip()
-            res.append((name,value))
+            value = item[eqIdx + 1:].strip()
+            res.append((name, value))
 
         return res;
 
@@ -332,8 +335,9 @@ class T24TestStep(object):
 
         res = []
         for item in listConstraints:
-            name, oper, value = RowUtils.ParseEnquiryRow(item)
-            res.append((name, oper, value))
+            if item.strip():
+                name, oper, value = RowUtils.ParseEnquiryRow(item)
+                res.append((name, oper, value))
 
         return res
 
@@ -350,20 +354,26 @@ class T24TestStep(object):
         elif self._Action == 'E':
             self._enquiryConstraintsPreAction.args = []
             for enc in self.EnquiryConstraints:
-                self._enquiryConstraintsPreAction.args.append(u'{} {} {}'.format(enc[0], enc[1], enc[2]))
+                if enc[1] or enc[1].strip():
+                    self._enquiryConstraintsPreAction.args.append(u'{} {} {}'.format(enc[0], enc[1], enc[2]))
+                else:
+                    self._enquiryConstraintsPreAction.args.append(u'{}'.format(enc[0]))
 
     def applyValidationRulesChanges(self):
         if self._Action == 'E' or self._Action == 'S':
             self._validationRulesPreAction.args = []
             for vr in self.ValidationRules:
-                self._validationRulesPreAction.args.append(u'{} {} {}'.format(vr[0], vr[1], vr[2]))
+                if vr[1] and vr[1].strip():
+                    self._validationRulesPreAction.args.append(u'{} {} {}'.format(vr[0], vr[1], vr[2]))
+                else:
+                    self._validationRulesPreAction.args.append(u'{}'.format(vr[0]))
 
-    def findPreAction(self, stepPreActions, keyword, assign):
+    def findPreAction(self, stepPreActions, keyword, variable):
         if stepPreActions is None:
             return None
 
         for pa in stepPreActions:
-            if pa.keyword == keyword and pa.assign is not None and pa.assign[0] == "{}=".format(assign):
+            if pa.keyword == keyword and pa.assign is not None and pa.assign[0] == "{}=".format(variable.replace("$", "@", 1)):
                 return pa
 
         return None
@@ -377,8 +387,9 @@ class T24TestStep(object):
             self._stepDetails.keyword = self.keyword_M
         elif self._Action == 'I':
             self._stepDetails.keyword = self.keyword_I
-            self._setArg(2, self.HowToHandleOverrides)
-            self._setArg(3, self._getHowToHandleErrors())
+            self._setArg(1, self.TransactionID)
+            self._setArg(3, self.HowToHandleOverrides)
+            self._setArg(4, self._getHowToHandleErrors())
         elif self._Action == 'A':
             self._stepDetails.keyword = self.keyword_A
             self._setArg(1, self.TransactionID)
@@ -387,8 +398,8 @@ class T24TestStep(object):
             self._setArg(1, self.TransactionID)
         elif self._Action == 'V':
             self._stepDetails.keyword = self.keyword_V
-            self._setArg(2, self.HowToHandleOverrides)
-            self._setArg(3, self._getHowToHandleErrors())
+            self._setArg(3, self.HowToHandleOverrides)
+            self._setArg(4, self._getHowToHandleErrors())
         elif self._Action == 'E':
             self._stepDetails.keyword = self.keyword_E
             self._setArg(2, self.EnquiryAction)
@@ -406,7 +417,7 @@ class T24TestStep(object):
             self.HowToHandleErrors = arg
         else:
             self.HowToHandleErrors = arg[:pos].strip()
-            self.ExpectErrorContaining = arg[(pos+1):].strip()
+            self.ExpectErrorContaining = arg[(pos + 1):].strip()
 
     def _getHowToHandleErrors(self):
         result = ''

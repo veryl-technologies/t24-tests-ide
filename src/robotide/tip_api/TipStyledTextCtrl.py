@@ -32,10 +32,16 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         self.Bind(stc.EVT_STC_STYLENEEDED, self.OnStyle)
         self.stylizer = TypStylizer(self, font)
 
+        # We don't need all wx.stc.EVT_STC_CHANGE events -> just those notify for actual changes in the text
+        self.SetModEventMask(wx.stc.STC_MOD_INSERTTEXT |
+                    wx.stc.STC_MOD_DELETETEXT |
+                    wx.stc.STC_PERFORMED_UNDO |
+                    wx.stc.STC_PERFORMED_REDO)
+
         self._register_shortcuts(self)
 
     def _create_font(self):
-        font=wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
         if not font.IsFixedWidth():
             # fixed width fonts are typically a little bigger than their variable width
             # peers so subtract one from the point size.
@@ -67,7 +73,10 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
 
         text = ''
         for attr in enquiryConstraints:
-            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+            if attr[1] or attr[1].strip():
+                text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+            else:
+                text += attr[0] + '\r\n'
 
         self.set_text(text)
 
@@ -79,7 +88,10 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
 
         text = ''
         for attr in validationRules:
-            text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+            if attr[1] or attr[1].strip():
+                text += '{} {} {}\r\n'.format(attr[0], attr[1], attr[2])
+            else:
+                text += attr[0] + '\r\n'
 
         self.set_text(text)
 
@@ -87,9 +99,11 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            nameValue = RowUtils.ParseTestDataRow(line)
-            if nameValue:
-                res.append(nameValue)
+            line = line.strip()
+            if line:
+                nameValue = RowUtils.ParseTestDataRow(line)
+                if nameValue:
+                    res.append(nameValue)
 
         return res
 
@@ -97,9 +111,11 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            nameOperValue = RowUtils.ParseEnquiryRow(line)
-            if nameOperValue:
-                res.append(nameOperValue)
+            line = line.strip()
+            if line:
+                nameOperValue = RowUtils.ParseEnquiryRow(line)
+                if nameOperValue:
+                    res.append(nameOperValue)
 
         return res
 
@@ -108,14 +124,25 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         res = []
 
         for line in self.GetText().split('\n'):
-            nameOperValue = RowUtils.ParseEnquiryRow(line)
-            if nameOperValue:
-                res.append(nameOperValue)
+            line = line.strip()
+            if line:
+                nameOperValue = RowUtils.ParseEnquiryRow(line)
+                if nameOperValue:
+                    res.append(nameOperValue)
 
         return res
 
+    def set_enabled(self, enabled):
+        if enabled:
+            self.StyleResetDefault()
+            self.SetReadOnly(False)
+        else:
+            self.StyleSetBackground(wx.stc.STC_STYLE_DEFAULT, (240, 240, 240))
+            self.ClearAll()
+            self.SetReadOnly(True)
+
     def set_text(self, text):
-        self.SetReadOnly(False)
+        self.set_enabled(True)
         self.SetText(text)
         self.stylizer.stylize()
         self.EmptyUndoBuffer()
@@ -169,28 +196,27 @@ class TypStylizer(object):
         self.lexer.setTestDataSyntax(isTestData)
 
     def _set_styles(self):
-        #color_settings = self.settings.get_without_default('Text Edit Colors')
-
+        # see colors http://xoomer.virgilio.it/infinity77/wxPython/Widgets/wx.ColourDatabase.html
         styles = {
             tiplexer.FIELDNAME: {
-                'fore': 'black' #color_settings['argument']
+                'fore': 'firebrick'
             },
             tiplexer.OPERATOR: {
-                'fore': 'blue', #color_settings['comment']
+                'fore': 'blue',
                 'bold': 'true'
             },
             tiplexer.VALUECONST: {
-                'fore': 'black' #color_settings['error']
+                'fore': 'MEDIUM SEA GREEN'
             },
             tiplexer.VALUEVARIABLE: {
-                'fore': 'darkblue' # '#00008B'#color_settings['gherkin']
+                'fore': 'purple'
             },
             tiplexer.ERROR: {
-                'fore': 'red', #color_settings['heading'],
+                'fore': 'red',
                 'bold': 'true'
             },
             tiplexer.SEPARATOR: {
-                'fore': 'black' #color_settings['argument']
+                'fore': 'black'
             },
         }
         self.tokens = {}

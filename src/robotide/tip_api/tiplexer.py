@@ -67,18 +67,41 @@ class RowTokenizer(object):
 
     _isTestDataSyntax = False
 
+    _test_data_syntax_operator = ':='
+
+    _operators = [ \
+                     ':EQ:=', 'EQUALS', \
+                     ':LK:=', 'MATCHES', \
+                     ':UL:=', 'NOT MATCHES', \
+                     ':NE:=', 'NOT EQUAL TO', \
+                     ':GT:=', 'GREATER THAN', \
+                     ':GE:=', 'GREATER THAN OR EQUALS', \
+                     ':LT:=', 'LESS THAN', \
+                     ':LE:=', 'LESS THAN OR EQUALS', \
+                     ':RG:=', 'BETWEEN', \
+                     ':NR:=', 'NOT BETWEEN', \
+                     ':CT:=', 'CONTAINS', \
+                     ':NC:=', 'NOT CONTAINING', \
+                     ':BW:=', 'BEGINS WITH', \
+                     ':EW:=', 'ENDS WITH', \
+                     ':DNBW:=', 'DOES NOT BEGIN WITH', \
+                     ':DNEW:=', 'DOES NOT END WITH', \
+                     ':SAID:=', 'SOUNDS LIKE', \
+                     '>>' \
+                     ]
+
     def __init__(self):
         pass
 
     def tokenize(self, row):
         hasFieldName = False
         hasOper = False
-        for index, value in self._next_word(row): #self._next_word(row):
+        for index, value in self._next_word(row):
             if self._isOperator(value):
-                if hasFieldName == False:
-                    yield index, ERROR, unicode(value) # have operator prior field name
+                if not hasFieldName:
+                    yield index, ERROR, unicode(value)  # have operator prior field name
                 elif hasOper:
-                    yield index, ERROR, unicode(value) # second operator
+                    yield index, ERROR, unicode(value)  # second operator
                 else:
                     yield index, OPERATOR, unicode(value)
                     hasOper = True
@@ -150,27 +173,6 @@ class RowTokenizer(object):
         elif len(sepa) > 0:
             yield startIdx, sepa
 
-    _test_data_syntax_operator = ':='
-
-    _operators = [ \
-                     ':EQ:=', 'EQUALS', \
-                     ':LK:=', 'MATCHES', \
-                     ':UL:=', 'NOT MATCHES', \
-                     ':NE:=', 'NOT EQUAL TO', \
-                     ':GT:=', 'GREATER THAN', \
-                     ':GE:=', 'GREATER THAN OR EQUALS', \
-                     ':LT:=', 'LESS THAN', \
-                     ':LE:=', 'LESS THAN OR EQUALS', \
-                     ':RG:=', 'BETWEEN', \
-                     ':NR:=', 'NOT BETWEEN', \
-                     ':CT:=', 'CONTAINS', \
-                     ':NC:=', 'NOT CONTAINING', \
-                     ':BW:=', 'BEGINS WITH', \
-                     ':EW:=', 'ENDS WITH', \
-                     ':DNBW:=', 'DOES NOT BEGIN WITH', \
-                     ':DNEW:=', 'DOES NOT END WITH', \
-                     ':SAID:=', 'SOUNDS LIKE' \
-                     ]
 
     def _isOperator(self, text):
         if self._isTestDataSyntax:
