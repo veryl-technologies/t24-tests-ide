@@ -497,7 +497,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer91.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
 
-        self.m_lblLoginUsingUserOfGroup = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"using user of group", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE )
+        self.m_lblLoginUsingUserOfGroup = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"using user of group", wx.Point( -1,-1 ), wx.Size( 125,-1 ), wx.ALIGN_CENTRE )
         self.m_lblLoginUsingUserOfGroup.Wrap( -1 )
         self.m_lblLoginUsingUserOfGroup.SetFont( wx.Font( 10, 74, 93, 92, False, "Arial" ) )
         self.m_lblLoginUsingUserOfGroup.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_BTNTEXT ) )
@@ -505,12 +505,12 @@ class T24TestStepPanelBase ( wx.Panel ):
         bSizer91.Add( self.m_lblLoginUsingUserOfGroup, 0, wx.TOP|wx.BOTTOM, 9 )
 
         m_choiceLoginUsingUserOfGroupChoices = []
-        self.m_choiceLoginUsingUserOfGroup = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceLoginUsingUserOfGroupChoices, 0 )
+        self.m_choiceLoginUsingUserOfGroup = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 100,-1 ), m_choiceLoginUsingUserOfGroupChoices, 0 )
         self.m_choiceLoginUsingUserOfGroup.SetSelection( 0 )
         bSizer91.Add( self.m_choiceLoginUsingUserOfGroup, 0, wx.ALL, 5 )
 
-        self.m_txtTestStepTransaction = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 514,-1 ), 0 )
-        bSizer91.Add( self.m_txtTestStepTransaction, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
+        self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
+        bSizer91.Add( self.m_txtTestStepMainParameter, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
 
         bSizer4.Add( bSizer91, 1, wx.EXPAND, 5 )
@@ -535,7 +535,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         fgSizer4.SetFlexibleDirection( wx.BOTH )
         fgSizer4.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-        self.m_staticline2 = wx.StaticLine( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 664,-1 ), wx.LI_HORIZONTAL )
+        self.m_staticline2 = wx.StaticLine( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 410,-1 ), wx.LI_HORIZONTAL )
         fgSizer4.Add( self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5 )
 
 
@@ -543,11 +543,13 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerTransactionID = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_lblTransID = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"@ID", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_lblTransID = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"@ID", wx.DefaultPosition, wx.Size( 80, -1 ), wx.ALIGN_RIGHT )
         self.m_lblTransID.Wrap( -1 )
+        self.m_lblTransID.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+
         self.m_sizerTransactionID.Add( self.m_lblTransID, 0, wx.ALL, 8 )
 
-        self.m_txtTransactionID = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 320,-1 ), 0 )
+        self.m_txtTransactionID = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), 0 )
         self.m_sizerTransactionID.Add( self.m_txtTransactionID, 0, wx.ALL, 5 )
 
 
@@ -646,7 +648,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_btnDown.Bind( wx.EVT_BUTTON, self.onBtnMoveDown )
         self.m_choiceTestStepAction.Bind( wx.EVT_CHOICE, self.onActionChanged )
         self.m_choiceLoginUsingUserOfGroup.Bind( wx.EVT_CHOICE, self.onLoginUsingUserOfGroupChanged )
-        self.m_txtTestStepTransaction.Bind( wx.EVT_TEXT, self.onTransactionChanged )
+        self.m_txtTestStepMainParameter.Bind( wx.EVT_TEXT, self.onTransactionChanged )
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
         self.m_txtTransactionID.Bind( wx.EVT_TEXT, self.onTransactionIDChanged )
         self.m_editTestData.Bind( wx.stc.EVT_STC_CHANGE, self.onEditTestDataChanged )
@@ -769,7 +771,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             if (newAction == 'M' and oldAction != 'M') or (newAction != 'M' and oldAction == 'M'):
                 # incompatible values for the transaction type / app version
                 self._testStep.AppVersion = ''
-                self.m_txtTestStepTransaction.SetValue('')
+                self.m_txtTestStepMainParameter.SetValue('')
 
             self._testStep.applyChanges()
             self.updateUI()
@@ -779,7 +781,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
     def onTransactionChanged(self, event):
         if self._testStep and self._testStepsContainer:
-            self._testStep.AppVersion = self.m_txtTestStepTransaction.GetValue()
+            self._testStep.AppVersion = self.m_txtTestStepMainParameter.GetValue()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
@@ -858,7 +860,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.setLoginUsingUserOfGroupChoices()
             self.m_choiceLoginUsingUserOfGroup.SetStringSelection(self._testStep.AppVersion)
         else:
-            self.m_txtTestStepTransaction.SetValue(self._testStep.AppVersion)
+            self.m_txtTestStepMainParameter.SetValue(self._testStep.AppVersion)
 
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
 
@@ -882,7 +884,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def updateUI(self):
         self.m_lblLoginUsingUserOfGroup.Hide()
         self.m_choiceLoginUsingUserOfGroup.Hide()
-        self.m_txtTestStepTransaction.Show()
+        self.m_txtTestStepMainParameter.Show()
 
         if self._testStep is None:
             # hide all
@@ -895,7 +897,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         elif self._testStep.GetStepType() == 'Login':
             self.m_lblLoginUsingUserOfGroup.Show()
             self.m_choiceLoginUsingUserOfGroup.Show()
-            self.m_txtTestStepTransaction.Hide()
+            self.m_txtTestStepMainParameter.Hide()
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
         elif self._testStep.GetStepType() == 'M':
