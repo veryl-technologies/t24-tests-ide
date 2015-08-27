@@ -608,7 +608,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerEnquiryType = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Enquiry Step type" ), wx.VERTICAL )
 
-        m_choiceEnquiryStepTypeChoices = [ u"Check Result", u"Read Data", u"Action" ]
+        m_choiceEnquiryStepTypeChoices = [ u"Check Result", u"Action" ]
         self.m_choiceEnquiryStepType = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceEnquiryStepTypeChoices, 0 )
         self.m_choiceEnquiryStepType.SetSelection( 0 )
         self.m_sizerEnquiryType.Add( self.m_choiceEnquiryStepType, 0, wx.ALIGN_RIGHT, 5 )
@@ -875,8 +875,6 @@ class T24TestStepPanel (T24TestStepPanelBase):
         if self._testStep.EnquiryAction and len(self._testStep.EnquiryAction) > 0:
             if self._testStep.EnquiryAction == u"Check Result":
                 self.m_choiceEnquiryStepType.SetStringSelection(self._testStep.EnquiryAction)
-            elif self._testStep.EnquiryAction == u"Read Data":
-                self.m_choiceEnquiryStepType.SetStringSelection(self._testStep.EnquiryAction)
             else:
                 self.m_choiceEnquiryStepType.SetStringSelection(u"Action")
                 self.m_txtEnquiryActionCommand.SetValue(self._testStep.EnquiryAction)
@@ -964,10 +962,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def updateValidationsHolderForEnquiry(self):
         if self.m_choiceEnquiryStepType.GetStringSelection() == u"Check Result":
             # self.m_sizerValidationHolder.ShowItems(True)
-            self.m_sizerValidationHolder.StaticBox.SetLabel(u"Validation Rules for the First Row in Enquiry Result")
-        elif self.m_choiceEnquiryStepType.GetStringSelection() == u"Read Data":
-            # self.m_sizerValidationHolder.ShowItems(True)
-            self.m_sizerValidationHolder.StaticBox.SetLabel(u"Values to Retrieve from First Row in Enquiry Result (column indexes)")
+            self.m_sizerValidationHolder.StaticBox.SetLabel(u"Commands for Reading and Validation Values from the First Row in the Enquiry Result")
         else:
             self.m_sizerValidationHolder.StaticBox.SetLabel(u"")
             # self.m_sizerValidationHolder.ShowItems(False) # resizing is problematic
