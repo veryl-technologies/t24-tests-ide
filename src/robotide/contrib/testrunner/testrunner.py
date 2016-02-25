@@ -216,8 +216,8 @@ class TestRunner(object):
         self._add_pythonpath_if_in_settings_and_not_given_by_user(command,
                                                                   standard_args,
                                                                   pythonpath)
-        standard_args.extend(["--monitorcolors", "off"])
-        standard_args.extend(["--monitorwidth", monitor_width])
+        standard_args.extend(["-C", "off"])
+        standard_args.extend(["-W", monitor_width])
         for suite, test in names_to_run:
             standard_args += ['--suite', suite, '--test', test]
         return standard_args
