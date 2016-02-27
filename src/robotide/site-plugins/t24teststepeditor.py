@@ -763,21 +763,23 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def onActionChanged(self, event):
         if self._testStep and self._testStepsContainer:
             oldAction = self._testStep.GetStepType()
-            newAction = self.m_choiceTestStepAction.GetStringSelection()
-            oldSubSteps = self._testStep.subSteps()
+            self.m_choiceTestStepAction.SetSelection(self.m_choiceTestStepAction.FindString(oldAction))
 
-            self._testStep.SetStepType(newAction)
-
-            if (newAction == 'M' and oldAction != 'M') or (newAction != 'M' and oldAction == 'M'):
-                # incompatible values for the transaction type / app version
-                self._testStep.AppVersion = ''
-                self.m_txtTestStepMainParameter.SetValue('')
-
-            self._testStep.applyChanges()
-            self.updateUI()
-            self.Layout()
-
-            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep, oldSubSteps)
+            # newAction = self.m_choiceTestStepAction.GetStringSelection()
+            # oldSubSteps = self._testStep.subSteps()
+            #
+            # self._testStep.SetStepType(newAction)
+            #
+            # if (newAction == 'M' and oldAction != 'M') or (newAction != 'M' and oldAction == 'M'):
+            #     # incompatible values for the transaction type / app version
+            #     self._testStep.AppVersion = ''
+            #     self.m_txtTestStepMainParameter.SetValue('')
+            #
+            # self._testStep.applyChanges()
+            # self.updateUI()
+            # self.Layout()
+            #
+            # self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep, oldSubSteps)
 
     def onTransactionChanged(self, event):
         if self._testStep and self._testStepsContainer:
