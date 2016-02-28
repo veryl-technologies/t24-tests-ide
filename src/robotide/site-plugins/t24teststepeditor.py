@@ -559,7 +559,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer14 = wx.BoxSizer( wx.VERTICAL )
 
-        self.m_sizerTestDataCtrlHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Test Data" ), wx.VERTICAL )
+        self.m_sizerTestDataCtrlHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Input Fields and Values" ), wx.VERTICAL )
 
 
         # WARNING: wxPython code generation isn't supported for this widget yet.
@@ -585,7 +585,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerHandleOverrides = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"How to Handle Overrides" ), wx.HORIZONTAL )
 
-        m_choiceHowToHandleOverridesChoices = [ u"Accept All", u"Fail" ]
+        m_choiceHowToHandleOverridesChoices = [ u"Fail", u"Accept All" ]
         self.m_choiceHowToHandleOverrides = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceHowToHandleOverridesChoices, 0 )
         self.m_choiceHowToHandleOverrides.SetSelection( 0 )
         self.m_sizerHandleOverrides.Add( self.m_choiceHowToHandleOverrides, 0, wx.ALIGN_RIGHT, 5 )
@@ -962,7 +962,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def updateValidationsHolderForEnquiry(self):
         if self.m_choiceEnquiryStepType.GetStringSelection() == u"Check Result":
             # self.m_sizerValidationHolder.ShowItems(True)
-            self.m_sizerValidationHolder.StaticBox.SetLabel(u"Commands for Reading and Validation Values from the First Row in the Enquiry Result")
+            self.m_sizerValidationHolder.StaticBox.SetLabel(u"Reading and Validation of Values from the First Row in the Enquiry Result")
         else:
             self.m_sizerValidationHolder.StaticBox.SetLabel(u"")
             # self.m_sizerValidationHolder.ShowItems(False) # resizing is problematic
