@@ -23,6 +23,7 @@ OPERATOR = Token.Operator
 VALUECONST = Token.ConstantValue
 VALUEVARIABLE = Token.Variable
 ERROR = Token.Error
+FORMULA = Token.Formula
 
 #
 # Syntax:
@@ -96,6 +97,11 @@ class RowTokenizer(object):
     def tokenize(self, row):
         hasFieldName = False
         hasOper = False
+
+        hasFormulaStarted = False
+        hasConstantStarted = False
+        hasVariableStarted = False
+
         for index, value in self._next_word(row):
             if self._isOperator(value):
                 if not hasFieldName:
@@ -110,11 +116,22 @@ class RowTokenizer(object):
             elif hasOper == False:
                 yield index, FIELDNAME, unicode(value)
                 hasFieldName = True
-            else:   # we have field name and operator
-                # todo latter we can highlight value expressions, for example:
-                # ${CUSTOMER,INDIVIDUAL}.@ID or 'MENMI' + $NEXT_MNEMONIC()
-                # todo - variables must start with one of the following: $@%
-                yield index, VALUECONST, unicode(value)
+            else:   # we already have field name and operator, now handle the right-side
+                if not hasFormulaStarted and not hasVariableStarted and not hasConstantStarted:
+                    if unicode(value).startswith("#"):
+                        hasFormulaStarted = True
+                        yield index, FORMULA, unicode(value)
+                    elif unicode(value).startswith("$"):  # TODO maybe also @%
+                        hasVariableStarted = True
+                        yield index, VALUEVARIABLE, unicode(value)
+                    else:
+                        hasConstantStarted = True
+                        yield index, VALUECONST, unicode(value)
+                else:
+                    # TODO we don't handle currently a variable within a formula
+                    yield index, \
+                          FORMULA if hasFormulaStarted else (VALUEVARIABLE if hasVariableStarted else VALUECONST),\
+                          unicode(value)
 
     def _next_word(self, row):
         buff = []

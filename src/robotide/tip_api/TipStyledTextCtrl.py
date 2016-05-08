@@ -218,6 +218,9 @@ class TypStylizer(object):
             tiplexer.SEPARATOR: {
                 'fore': 'black'
             },
+            tiplexer.FORMULA: {
+                'fore': 'Dark Slate Blue'
+            },
         }
         self.tokens = {}
         for index, token in enumerate(styles):
