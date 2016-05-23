@@ -523,10 +523,10 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ), 0 )
         bSizer91.Add( self.m_txtTestStepMainParameter, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
-        self.m_lblDescription = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"Desc: ", wx.DefaultPosition, wx.Size( 40, -1 ))
+        self.m_lblDescription = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"Desc: ", wx.Point( -1,-1 ), wx.Size( 34, -1 ), wx.ALIGN_CENTRE)
         self.m_lblDescription.Wrap( -1 )
         self.m_lblDescription.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
-        bSizer91.Add( self.m_lblDescription, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
+        bSizer91.Add( self.m_lblDescription, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 9 )
 
         self.m_txtTestStepDescription = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 370,-1 ), 0 )
         bSizer91.Add( self.m_txtTestStepDescription, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
@@ -913,6 +913,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         self.m_lblLoginUsingUserOfGroup.Hide()
         self.m_choiceLoginUsingUserOfGroup.Hide()
         self.m_txtTestStepMainParameter.Show()
+        self.m_lblDescription.Show()
         self.m_txtTestStepDescription.Show()
 
         if self._testStep is None:
@@ -927,6 +928,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_lblLoginUsingUserOfGroup.Show()
             self.m_choiceLoginUsingUserOfGroup.Show()
             self.m_txtTestStepMainParameter.Hide()
+            self.m_lblDescription.Hide()
             self.m_txtTestStepDescription.Hide()
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
