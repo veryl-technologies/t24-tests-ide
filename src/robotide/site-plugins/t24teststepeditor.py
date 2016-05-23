@@ -34,6 +34,8 @@ import wx
 import wx.xrc
 import wx.grid
 
+from robot.parsing.comments import Comment
+
 try:
     from . import robotframeworklexer
 except Exception as e:
@@ -318,6 +320,7 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
 
         if testSteps is not None:
             for step in testSteps:
+                self._proressStepComments(step)
                 if not T24TestStep.isT24TestStep(step):
                     stepPreActions.append(step)
                 else:
@@ -338,6 +341,14 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
             self.m_sizerTestStepsContainer.Layout()
 
             self.Layout()
+
+    def _proressStepComments(self, step):
+        if step.args and len(step.args) > 0:
+            lastArg = step.args[len(step.args) - 1]
+            if lastArg and lastArg.startswith('#'):
+                step.comment = Comment(lastArg)
+                step.args.remove(lastArg)
+
 
     def _createStepPanel(self, stepPreActions, stepDetails):
         t24TestStep = T24TestStep(stepPreActions, stepDetails)
@@ -509,13 +520,22 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_choiceLoginUsingUserOfGroup.SetSelection( 0 )
         bSizer91.Add( self.m_choiceLoginUsingUserOfGroup, 0, wx.ALL, 5 )
 
-        self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
+        self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ), 0 )
         bSizer91.Add( self.m_txtTestStepMainParameter, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
+        self.m_lblDescription = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"Desc: ", wx.DefaultPosition, wx.Size( 40, -1 ))
+        self.m_lblDescription.Wrap( -1 )
+        self.m_lblDescription.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+        bSizer91.Add( self.m_lblDescription, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
+
+        self.m_txtTestStepDescription = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 370,-1 ), 0 )
+        bSizer91.Add( self.m_txtTestStepDescription, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
         bSizer4.Add( bSizer91, 1, wx.EXPAND, 5 )
 
+
         bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
+
 
         self.m_btnDelete = wx.Button( self.m_panelTestStepContents, wx.ID_ANY, u"X", wx.Point( -1,-1 ), wx.Size( 22,22 ), 0 )
         self.m_btnDelete.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
@@ -649,6 +669,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_choiceTestStepAction.Bind( wx.EVT_CHOICE, self.onActionChanged )
         self.m_choiceLoginUsingUserOfGroup.Bind( wx.EVT_CHOICE, self.onLoginUsingUserOfGroupChanged )
         self.m_txtTestStepMainParameter.Bind( wx.EVT_TEXT, self.onTransactionChanged )
+        self.m_txtTestStepDescription.Bind(wx.EVT_TEXT, self.onDescriptionChanged)
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
         self.m_txtTransactionID.Bind( wx.EVT_TEXT, self.onTransactionIDChanged )
         self.m_editTestData.Bind( wx.stc.EVT_STC_CHANGE, self.onEditTestDataChanged )
@@ -787,6 +808,12 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
+    def onDescriptionChanged(self, event):
+        if self._testStep and self._testStepsContainer:
+            self._testStep.Description = self.m_txtTestStepDescription.GetValue()
+            self._testStep.applyChanges()
+            self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
+
     def onTransactionIDChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.TransactionID = self.m_txtTransactionID.GetValue()
@@ -863,6 +890,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_choiceLoginUsingUserOfGroup.SetStringSelection(self._testStep.AppVersion)
         else:
             self.m_txtTestStepMainParameter.SetValue(self._testStep.AppVersion)
+            self.m_txtTestStepDescription.SetValue(self._testStep.Description)
 
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
 
@@ -885,6 +913,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         self.m_lblLoginUsingUserOfGroup.Hide()
         self.m_choiceLoginUsingUserOfGroup.Hide()
         self.m_txtTestStepMainParameter.Show()
+        self.m_txtTestStepDescription.Show()
 
         if self._testStep is None:
             # hide all
@@ -898,6 +927,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_lblLoginUsingUserOfGroup.Show()
             self.m_choiceLoginUsingUserOfGroup.Show()
             self.m_txtTestStepMainParameter.Hide()
+            self.m_txtTestStepDescription.Hide()
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
         elif self._testStep.GetStepType() == 'M':

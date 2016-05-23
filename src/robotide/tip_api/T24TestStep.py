@@ -1,6 +1,7 @@
 __author__ = 'Zhelev'
 
 from robot.parsing.model import Step
+from robot.parsing.comments import Comment
 from tiplexer import RowUtils
 
 
@@ -21,6 +22,7 @@ class T24TestStep(object):
     # properties
     _Action = ''   # the step type
     AppVersion = ''   # the T24 application and version
+    Description = ''    # the description of the test step
     TransactionID = ''   # the T24 record ID
 
     TestData = []
@@ -55,6 +57,11 @@ class T24TestStep(object):
         self._testDataPreAction = None
         self._enquiryConstraintsPreAction = None
         self._validationRulesPreAction = None
+        if stepDetails.comment and len(stepDetails.comment.as_list()) > 0:
+            desc = stepDetails.comment.as_list()[0]
+            if desc.startswith("#"):
+                desc = desc[1:]
+            self.Description = desc.strip()
 
         if stepDetails.keyword == self.keyword_L:
             self._Action = 'Login'
@@ -380,6 +387,11 @@ class T24TestStep(object):
 
     def applyChanges(self):
         self._setArg(0, self.AppVersion)
+        # self._stepDetails.comment._comment = []
+        if self.Description and len(self.Description):
+            desc = self.Description.strip()
+            desc = "# " + self.Description
+            self._stepDetails.comment = Comment(desc)
 
         if self._Action == 'Login':
             self._stepDetails.keyword = self.keyword_L
