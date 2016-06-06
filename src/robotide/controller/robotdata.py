@@ -19,6 +19,8 @@ from robot.parsing.model import TestCaseFile, TestDataDirectory
 
 def NewTestCaseFile(path):
     datafile = TestCaseFile(source=path)
+    datafile.setting_table.add_library('T24WebDriver.py')  # TODO support relative imports from subfolders
+    datafile.setting_table.add_library('Selenium2Library')
     _create_missing_directories(datafile.directory)
     return datafile
 
