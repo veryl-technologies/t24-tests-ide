@@ -523,9 +523,11 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ), 0 )
         bSizer91.Add( self.m_txtTestStepMainParameter, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
-        self.m_lblDescription = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"Desc: ", wx.Point( -1,-1 ), wx.Size( 34, -1 ), wx.ALIGN_CENTRE)
+        self.m_lblDescription = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"[click to add description]", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE)
         self.m_lblDescription.Wrap( -1 )
-        self.m_lblDescription.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
+        self.m_lblDescription.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 74, 93, 90, False, "Arial" ) )
+        self.m_lblDescription.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_3DDKSHADOW ) )
+
         bSizer91.Add( self.m_lblDescription, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 9 )
 
         self.m_txtTestStepDescription = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 370,-1 ), 0 )
@@ -533,9 +535,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer4.Add( bSizer91, 1, wx.EXPAND, 5 )
 
-
         bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
-
 
         self.m_btnDelete = wx.Button( self.m_panelTestStepContents, wx.ID_ANY, u"X", wx.Point( -1,-1 ), wx.Size( 22,22 ), 0 )
         self.m_btnDelete.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
@@ -679,6 +679,8 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_txtExpectErrorContaining.Bind( wx.EVT_TEXT, self.onExpectedErrorContainingTextChanged )
         self.m_choiceEnquiryStepType.Bind( wx.EVT_CHOICE, self.onEnquiryStepTypeChanged )
         self.m_txtEnquiryActionCommand.Bind( wx.EVT_TEXT, self.onEnquiryActionCommandChanged )
+        self.m_lblDescription.Bind( wx.EVT_LEFT_UP, self.onDescriptionBeginEdit )
+        self.m_txtTestStepDescription.Bind(wx.EVT_KILL_FOCUS, self.onDescriptionEndEdit )
 
     def __del__( self ):
         pass
@@ -751,6 +753,19 @@ class T24TestStepPanelBase ( wx.Panel ):
     def onEnquiryActionCommandChanged(self, event):
         event.Skip()
 
+    def onDescriptionBeginEdit(self, event):
+        self.m_lblDescription.Size = wx.Size(0, 0)
+        self.m_lblDescription.Hide()
+        self.m_txtTestStepDescription.Show()
+        self.m_txtTestStepDescription.SetFocus()
+        self.m_sizerTestStepContents.Layout()
+
+    def onDescriptionEndEdit(self, event):
+        self.m_lblDescription.Size = wx.DefaultSize
+        self.m_lblDescription.Show()
+        self.m_txtTestStepDescription.Hide()
+        self.m_sizerTestStepContents.Layout()
+
     def m_btnNewBeforeOnContextMenu(self, event):
         self.m_btnNewBefore.PopupMenu( self.m_menuNewTestStepBefore, event.GetPosition() )
 
@@ -811,6 +826,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def onDescriptionChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.Description = self.m_txtTestStepDescription.GetValue()
+            self.refreshLblDescription()
             self._testStep.applyChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
@@ -891,6 +907,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         else:
             self.m_txtTestStepMainParameter.SetValue(self._testStep.AppVersion)
             self.m_txtTestStepDescription.SetValue(self._testStep.Description)
+            self.refreshLblDescription()
 
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
 
@@ -914,7 +931,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         self.m_choiceLoginUsingUserOfGroup.Hide()
         self.m_txtTestStepMainParameter.Show()
         self.m_lblDescription.Show()
-        self.m_txtTestStepDescription.Show()
+        self.m_txtTestStepDescription.Hide()
 
         if self._testStep is None:
             # hide all
@@ -929,7 +946,6 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_choiceLoginUsingUserOfGroup.Show()
             self.m_txtTestStepMainParameter.Hide()
             self.m_lblDescription.Hide()
-            self.m_txtTestStepDescription.Hide()
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
         elif self._testStep.GetStepType() == 'M':
@@ -1002,6 +1018,12 @@ class T24TestStepPanel (T24TestStepPanelBase):
             # self.m_sizerValidationHolder.ShowItems(False) # resizing is problematic
 
         # self.m_sizerValidationHolder.Layout()
+
+    def refreshLblDescription(self):
+        if not self._testStep.Description or len(string.strip(self._testStep.Description)) == 0:
+            self.m_lblDescription.SetLabel(u"[click to add description]")
+        else:
+            self.m_lblDescription.SetLabel(self._testStep.Description)
 
     def setLoginUsingUserOfGroupChoices(self):
         self.m_choiceLoginUsingUserOfGroup.Clear()
