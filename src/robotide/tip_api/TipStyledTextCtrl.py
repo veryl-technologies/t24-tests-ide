@@ -160,8 +160,15 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         #    self.SetStyling(1, self.tokens[tiplexer.OPERATOR])
         #self.GetText().split lines....
 
-    def _register_shortcuts(self, editor):
+    @staticmethod
+    def _handle_delete(editor):
+        if editor.GetSelectionStart() == editor.GetSelectionEnd():
+           editor.CharRight()
+           editor.DeleteBack()
+        else:
+            editor.DeleteBack()
 
+    def _register_shortcuts(self, editor):
         accels = []
 
         accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('X'),(lambda e: editor.Cut())))
@@ -175,9 +182,8 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
 
         accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Z'),(lambda e: editor.Undo())))
         accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Y'),(lambda e: editor.Redo())))
-        accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE,(lambda e: editor.DeleteBack())))#todo how to delete the selection?
+        accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE, (lambda e: self._handle_delete(editor))))
         #accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('G'),(lambda e: editor.FindText())))
-
         editor.SetAcceleratorTable(wx.AcceleratorTable(accels))
 
     def _createAccelerator(self, modifierKey, key, func):
