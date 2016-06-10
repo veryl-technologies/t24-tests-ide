@@ -8,6 +8,7 @@ from tiplexer import TipLexer
 from tiplexer import RowUtils
 
 class TipStyledTextCtrl(stc.StyledTextCtrl):
+    _isTestData = False
 
     def __init__(self, parent):
         stc.StyledTextCtrl.__init__(self, parent, wx.ID_ANY)
@@ -49,6 +50,7 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         return font
 
     def setTestDataSyntax(self, isTestData):
+        self._isTestData = isTestData
         self.stylizer.setTestDataSyntax(isTestData)
 
     def setTestData(self, testData):
@@ -168,6 +170,37 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         else:
             editor.DeleteBack()
 
+    def _show_autocomplete(self, editor):
+        line = editor.GetLine(editor.GetCurrentLine()).rstrip('\n')  # TODO instead get the text until the caret pos
+
+        # demand a space before showing the autocomplete (just after the first token)
+        if not line.endswith(" "):
+            return
+
+        # check if there is a single valid token (which should be a field name or an enquiry row number)
+        line = line.strip()
+        if not line or ' ' in line:
+            return
+
+        # depending on the context, show the corresponding operators
+        operators = [":="] if self._isTestData else [
+             '>>',
+             ':EQ:=',
+             ':LK:=',
+             ':UL:=',
+             ':NE:=',
+             ':GT:=',
+             ':GE:=',
+             ':LT:=',
+             ':LE:=',
+             ':CT:=',
+             ':NC:=',
+             ':BW:=',
+             ':EW:=',
+         ]
+
+        editor.AutoCompShow(0, " ".join(operators))
+
     def _register_shortcuts(self, editor):
         accels = []
 
@@ -183,6 +216,7 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Z'),(lambda e: editor.Undo())))
         accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Y'),(lambda e: editor.Redo())))
         accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE, (lambda e: self._handle_delete(editor))))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord(' '), (lambda e: self._show_autocomplete(editor))))
         #accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('G'),(lambda e: editor.FindText())))
         editor.SetAcceleratorTable(wx.AcceleratorTable(accels))
 
