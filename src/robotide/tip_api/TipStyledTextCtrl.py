@@ -31,6 +31,7 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
 
         self.SetLexer(stc.STC_LEX_CONTAINER)
         self.Bind(stc.EVT_STC_STYLENEEDED, self.OnStyle)
+        self.Bind(stc.EVT_STC_CHARADDED, self.OnCharAdded)  # we can use also stc.EVT_STC_MODIFIED
         self.stylizer = TypStylizer(self, font)
 
         # We don't need all wx.stc.EVT_STC_CHANGE events -> just those notify for actual changes in the text
@@ -39,7 +40,7 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
                     wx.stc.STC_PERFORMED_UNDO |
                     wx.stc.STC_PERFORMED_REDO)
 
-        self._register_shortcuts(self)
+        self._register_shortcuts()
 
     def _create_font(self):
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
@@ -162,16 +163,18 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         #    self.SetStyling(1, self.tokens[tiplexer.OPERATOR])
         #self.GetText().split lines....
 
-    @staticmethod
-    def _handle_delete(editor):
-        if editor.GetSelectionStart() == editor.GetSelectionEnd():
-           editor.CharRight()
-           editor.DeleteBack()
-        else:
-            editor.DeleteBack()
+    def OnCharAdded(self, event):
+        self._try_show_autocomplete()
 
-    def _show_autocomplete(self, editor):
-        line = editor.GetLine(editor.GetCurrentLine()).rstrip('\n')  # TODO instead get the text until the caret pos
+    def _handle_delete(self):
+        if self.GetSelectionStart() == self.GetSelectionEnd():
+            self.CharRight()
+            self.DeleteBack()
+        else:
+            self.DeleteBack()
+
+    def _try_show_autocomplete(self):
+        line = self.GetLine(self.GetCurrentLine()).rstrip('\n')  # TODO instead get the text until the caret pos
 
         # demand a space before showing the autocomplete (just after the first token)
         if not line.endswith(" "):
@@ -199,31 +202,31 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
              ':EW:=',
          ]
 
-        editor.AutoCompShow(0, " ".join(operators))
+        self.AutoCompShow(0, " ".join(operators))
 
-    def _register_shortcuts(self, editor):
+    def _register_shortcuts(self):
         accels = []
 
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('X'),(lambda e: editor.Cut())))
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('C'),(lambda e: editor.Copy())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('X'),(lambda e: self.Cut())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('C'),(lambda e: self.Copy())))
 
         if IS_MAC: # Mac needs this key binding
-            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('A'),(lambda e: editor.SelectAll())))
+            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('A'),(lambda e: self.SelectAll())))
 
         if IS_WINDOWS or IS_MAC: # Linux does not need this key binding
-            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('V'),(lambda e: editor.Paste())))
+            accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('V'),(lambda e: self.Paste())))
 
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Z'),(lambda e: editor.Undo())))
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Y'),(lambda e: editor.Redo())))
-        accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE, (lambda e: self._handle_delete(editor))))
-        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord(' '), (lambda e: self._show_autocomplete(editor))))
-        #accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('G'),(lambda e: editor.FindText())))
-        editor.SetAcceleratorTable(wx.AcceleratorTable(accels))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Z'),(lambda e: self.Undo())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('Y'),(lambda e: self.Redo())))
+        accels.append(self._createAccelerator(wx.ACCEL_NORMAL, wx.WXK_DELETE, (lambda e: self._handle_delete())))
+        accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord(' '), (lambda e: self._try_show_autocomplete())))
+        #accels.append(self._createAccelerator(wx.ACCEL_CTRL, ord('G'),(lambda e: self.FindText())))
+        self.SetAcceleratorTable(wx.AcceleratorTable(accels))
 
     def _createAccelerator(self, modifierKey, key, func):
         cutId = wx.NewId()
         self.Bind(wx.EVT_MENU, func, id=cutId)
-        return (modifierKey, key, cutId )
+        return (modifierKey, key, cutId)
 
 class TypStylizer(object):
     def __init__(self, editor, font):
