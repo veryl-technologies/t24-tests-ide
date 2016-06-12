@@ -904,12 +904,13 @@ class T24TestStepPanel (T24TestStepPanelBase):
         if self._testStep.GetStepType() == 'Login':
             self.setLoginUsingUserOfGroupChoices()
             self.m_choiceLoginUsingUserOfGroup.SetStringSelection(self._testStep.AppVersion)
-        if self._testStep.GetStepType() == 'M': # Menu
-            self.m_txtTestStepMainParameter.SetToolTipString(u"Use '>' to separate menu sub items. \nExample: 'User Menu > Customer > Individual Customer' \nNote that starting items can be omitted. For example: 'Customer > Individual Customer' or 'Individual Customer' will both navigate to the same target")
         else:
             self.m_txtTestStepMainParameter.SetValue(self._testStep.AppVersion)
             self.m_txtTestStepDescription.SetValue(self._testStep.Description)
             self.refreshLblDescription()
+
+        if self._testStep.GetStepType() == 'M': # Menu
+            self.m_txtTestStepMainParameter.SetToolTipString(u"Use '>' to separate menu sub items. \nExample: 'User Menu > Customer > Individual Customer' \nNote that starting items can be omitted. For example: 'Customer > Individual Customer' or 'Individual Customer' will both navigate to the same target")
 
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
 
