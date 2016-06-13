@@ -589,7 +589,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer14.Add( self.m_sizerTestDataCtrlHolder, 1, wx.LEFT|wx.EXPAND, 5 )
 
-        self.m_sizerValidationHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Validation Rules and Assignments" ), wx.VERTICAL )
+        self.m_sizerValidationHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Validations and Assignments" ), wx.VERTICAL )
 
         # WARNING: wxPython code generation isn't supported for this widget yet.
         self.m_editValidationRules = self.createTestDataEditCtrl() # wx.Window( self.m_panelTestStepContents )
