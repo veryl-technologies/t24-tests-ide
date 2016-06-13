@@ -569,7 +569,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerTransactionID.Add( self.m_lblTransID, 0, wx.ALL, 8 )
 
-        self.m_txtTransactionID = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), 0 )
+        self.m_txtTransactionID = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ), 0 )
         self.m_sizerTransactionID.Add( self.m_txtTransactionID, 0, wx.ALL, 5 )
 
 
