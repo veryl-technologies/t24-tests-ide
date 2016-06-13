@@ -22,6 +22,7 @@ SEPARATOR = Token.Punctuation
 OPERATOR = Token.Operator
 VALUECONST = Token.ConstantValue
 VALUEVARIABLE = Token.Variable
+VARIABLENAME = Token.VariableName
 ERROR = Token.Error
 FORMULA = Token.Formula
 
@@ -97,10 +98,12 @@ class RowTokenizer(object):
     def tokenize(self, row):
         hasFieldName = False
         hasOper = False
+        isOperAssignToVariable = False
 
         hasFormulaStarted = False
         hasConstantStarted = False
         hasVariableStarted = False
+
 
         for index, value in self._next_word(row):
             if self._isOperator(value):
@@ -111,6 +114,7 @@ class RowTokenizer(object):
                 else:
                     yield index, OPERATOR, unicode(value)
                     hasOper = True
+                    isOperAssignToVariable = (value == ">>")
             elif value.startswith(' ') or value.startswith('\t'):
                 yield index, SEPARATOR, unicode(value)  # separator
             elif hasOper is False:
@@ -126,7 +130,7 @@ class RowTokenizer(object):
                         yield index, VALUEVARIABLE, unicode(value)
                     else:
                         hasConstantStarted = True
-                        yield index, VALUECONST, unicode(value)
+                        yield index, VALUECONST if not isOperAssignToVariable else VARIABLENAME, unicode(value)
                 else:
                     # TODO we don't handle currently a variable within a formula
                     yield index, \

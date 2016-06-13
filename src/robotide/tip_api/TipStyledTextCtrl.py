@@ -254,6 +254,10 @@ class TypStylizer(object):
             tiplexer.VALUEVARIABLE: {
                 'fore': 'purple'
             },
+            tiplexer.VARIABLENAME: {
+                'fore': 'purple',
+                'bold': 'true'
+            },
             tiplexer.ERROR: {
                 'fore': 'red',
                 'bold': 'true'
