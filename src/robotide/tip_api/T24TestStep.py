@@ -25,9 +25,9 @@ class T24TestStep(object):
     Description = ''    # the description of the test step
     TransactionID = ''   # the T24 record ID
 
-    TestData = []
+    InputValues = []  # input values
     EnquiryConstraints = []
-    ValidationRules = []
+    ValidationRules = []  # validations and assignments
 
     # I, V specific properties
     HowToHandleErrors = None
@@ -36,12 +36,12 @@ class T24TestStep(object):
 
     EnquiryAction = None
 
-    IsRealTestStep = False
+    CanDisplayTestStepInDesigner = False
 
     def __init__(self, stepPreActions, stepDetails):
         # stepPreActions are the keywords for initialization of variables etc that belong to the entire test step
         self._stepDetails = stepDetails
-        self.IsRealTestStep = self.parseTestStep(stepDetails, stepPreActions)
+        self.CanDisplayTestStepInDesigner = self.parseTestStep(stepDetails, stepPreActions)
 
     @staticmethod
     def isT24TestStep(stepDetails):
@@ -252,7 +252,7 @@ class T24TestStep(object):
             return
 
         self._testDataPreAction = testDataList
-        self.TestData = self._getNameValueList(testDataList.args)
+        self.InputValues = self._getNameValueList(testDataList.args)
 
     def setEnquiryConstraints(self, arg, stepPreActions):
         enqConstraintsList = self.findPreAction(stepPreActions, "Create List", arg)
@@ -352,10 +352,10 @@ class T24TestStep(object):
         # so far both are with same syntax
         return self._getEnqConstraintList(list)
 
-    def applyTestDataOrEnqConstraintChanges(self):
+    def applyInputValuesOrEnquiryConstraintsChanges(self):
         if self._Action == 'I' or self._Action == 'V':
             self._testDataPreAction.args = []
-            for td in self.TestData:
+            for td in self.InputValues:
                 self._testDataPreAction.args.append(u'{}={}'.format(td[0], td[1]))
 
         elif self._Action == 'E':

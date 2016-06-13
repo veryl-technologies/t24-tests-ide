@@ -30,7 +30,7 @@ FORMULA = Token.Formula
 # {FIELD.NAME} {OPERATOR} {VALUE}
 #       * {VALUE} can be constant, variable or expression
 #
-# Test Data Example:    (only operator ':=' is applicable for test data definition)
+# Input Values Example:    (only operator ':=' is applicable for field assignment)
 # MNEMONIC:=$NEXT_MNEMONIC
 # Short Name:=John Smith
 # NAME:1:1:=John Bonn Smith
@@ -42,33 +42,33 @@ FORMULA = Token.Formula
 # SHORT.NAME:EQ:=John Smith
 # Sector ends with 99
 #
-#
+
 
 class TipLexer(Lexer):
 
-    _isTestDataSyntax = False
+    _isInputValuesSyntax = False
 
     def __init__(self):
         Lexer.__init__(self, tabsize=2, encoding='UTF-8')
 
-    def setTestDataSyntax(self, isTestDataSyntax):
-        self._isTestDataSyntax = isTestDataSyntax
+    def setInputValuesSyntax(self, isInputValuesSyntax):
+        self._isInputValuesSyntax = isInputValuesSyntax
 
     def get_tokens_unprocessed(self, text):
         row_tokenizer = RowTokenizer()
-        row_tokenizer._isTestDataSyntax = self._isTestDataSyntax
+        row_tokenizer._isInputValuesSyntax = self._isInputValuesSyntax
         index = 0
         for row in text.splitlines():
             for localIndex, token, value in row_tokenizer.tokenize(row):
                 yield index, token, value
                 index += len(value)
-            index += 1 #Cr
+            index += 1  #Cr
 
 class RowTokenizer(object):
 
-    _isTestDataSyntax = False
+    _isInputValuesSyntax = False
 
-    _test_data_syntax_operator = ':='
+    _input_field_assignment_operator = ':='
 
     _operators = [ \
                      ':EQ:=', 'EQUALS', \
@@ -113,7 +113,7 @@ class RowTokenizer(object):
                     hasOper = True
             elif value.startswith(' ') or value.startswith('\t'):
                 yield index, SEPARATOR, unicode(value)  # separator
-            elif hasOper == False:
+            elif hasOper is False:
                 yield index, FIELDNAME, unicode(value)
                 hasFieldName = True
             else:   # we already have field name and operator, now handle the right-side
@@ -148,10 +148,9 @@ class RowTokenizer(object):
                     yield operIndex, oper
                     buff = residual
 
-        #return all buffered
+        # return all buffered
         for index, value in buff:
             yield index, value
-
 
     def _next(self, row):
         word = ''
@@ -190,17 +189,16 @@ class RowTokenizer(object):
         elif len(sepa) > 0:
             yield startIdx, sepa
 
-
     def _isOperator(self, text):
-        if self._isTestDataSyntax:
-            return text == self._test_data_syntax_operator
+        if self._isInputValuesSyntax:
+            return text == self._input_field_assignment_operator
 
         return text.upper() in self._operators
 
     _multiWordOperators = None
 
     def _getMultiWordOperators(self):
-        if self._isTestDataSyntax:
+        if self._isInputValuesSyntax:
             return {}
 
         if self._multiWordOperators is None:
@@ -281,20 +279,20 @@ class RowUtils(object):
         return RowUtils._parseRow(row, False)
 
     @staticmethod
-    def _parseRow(row, isTestDataSyntax):
+    def _parseRow(row, isInputValuesSyntax):
         res_name = ''
         res_oper = ''
         res_value = ''
         hasOper = False
 
         tokenizer = RowTokenizer()
-        tokenizer._isTestDataSyntax = isTestDataSyntax
+        tokenizer._isInputValuesSyntax = isInputValuesSyntax
 
         for index, token, value in tokenizer.tokenize(row):
             if token == OPERATOR:
                 hasOper = True
                 res_oper = value
-            elif hasOper == False:
+            elif hasOper is False:
                 res_name += value
             else:
                 res_value += value

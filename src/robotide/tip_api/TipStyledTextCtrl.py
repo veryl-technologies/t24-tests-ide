@@ -8,7 +8,7 @@ from tiplexer import TipLexer
 from tiplexer import RowUtils
 
 class TipStyledTextCtrl(stc.StyledTextCtrl):
-    _isTestData = False
+    _isInputValues = False
 
     def __init__(self, parent):
         stc.StyledTextCtrl.__init__(self, parent, wx.ID_ANY)
@@ -23,7 +23,7 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         size = font.GetPointSize()
         self.SetFont(font)
         self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,"face:%s,size:%d" % (face, size))
-        self.StyleSetSpec(2, "fore:#b22222") # firebrick
+        self.StyleSetSpec(2, "fore:#b22222")  # firebrick
         self.SetScrollWidth(100)
 
         #ctrl.SetLexer(stc.STC_LEX_PASCAL)
@@ -50,25 +50,25 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
             font = wx.Font(font.GetPointSize()-1, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         return font
 
-    def setTestDataSyntax(self, isTestData):
-        self._isTestData = isTestData
-        self.stylizer.setTestDataSyntax(isTestData)
+    def setInputValuesSyntax(self, isInputValuesMode):
+        self._isInputValues = isInputValuesMode
+        self.stylizer.setInputValuesSyntax(isInputValuesMode)
 
-    def setTestData(self, testData):
-        self.setTestDataSyntax(True)
+    def setInputValues(self, inputValues):
+        self.setInputValuesSyntax(True)
         self.set_text('')
 
-        if testData is None:
+        if inputValues is None:
             return
 
         text = ''
-        for attr in testData:
+        for attr in inputValues:
             text += '{} := {}\r\n'.format(attr[0], attr[1])
 
         self.set_text(text)
 
     def setEnquiryConstraints(self, enquiryConstraints):
-        self.setTestDataSyntax(False)
+        self.setInputValuesSyntax(False)
         self.set_text('')
 
         if enquiryConstraints is None:
@@ -186,7 +186,7 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
             return
 
         # depending on the context, show the corresponding operators
-        operators = [":="] if self._isTestData else [
+        operators = [":="] if self._isInputValues else [
              '>>',
              ':EQ:=',
              ':LK:=',
@@ -235,8 +235,8 @@ class TypStylizer(object):
         self.font = font
         self._set_styles()
 
-    def setTestDataSyntax(self, isTestData):
-        self.lexer.setTestDataSyntax(isTestData)
+    def setInputValuesSyntax(self, isInputValuesMode):
+        self.lexer.setInputValuesSyntax(isInputValuesMode)
 
     def _set_styles(self):
         # see colors http://xoomer.virgilio.it/infinity77/wxPython/Widgets/wx.ColourDatabase.html

@@ -357,7 +357,7 @@ class T24TestStepsContainer(T24TestStepsContainerBase):
         return self._createTestStepPanel(t24TestStep)
 
     def _createTestStepPanel(self, testStep):
-        if testStep.IsRealTestStep:
+        if testStep.CanDisplayTestStepInDesigner:
             panel = T24TestStepPanel(self.m_scrolledWindow2, self, testStep)
             return panel
 
@@ -589,7 +589,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         bSizer14.Add( self.m_sizerTestDataCtrlHolder, 1, wx.LEFT|wx.EXPAND, 5 )
 
-        self.m_sizerValidationHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Validation Rules" ), wx.VERTICAL )
+        self.m_sizerValidationHolder = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"Validation Rules and Assignments" ), wx.VERTICAL )
 
         # WARNING: wxPython code generation isn't supported for this widget yet.
         self.m_editValidationRules = self.createTestDataEditCtrl() # wx.Window( self.m_panelTestStepContents )
@@ -847,8 +847,8 @@ class T24TestStepPanel (T24TestStepPanelBase):
             if self.m_choiceTestStepAction.GetStringSelection() == 'E':
                 self._testStep.EnquiryConstraints = self.getEnqConstraintsFromUI()
             else:
-                self._testStep.TestData = self.getTestDataFromUI()
-            self._testStep.applyTestDataOrEnqConstraintChanges()
+                self._testStep.InputValues = self.getTestDataFromUI()
+            self._testStep.applyInputValuesOrEnquiryConstraintsChanges()
             self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep)
 
     def onValidationRulesChanged(self, event):
@@ -960,16 +960,16 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerEnquiryType.ShowItems(False)
             self.m_sizerValidationHolder.ShowItems(False)
             self.m_sizerHandleErrors.ShowItems(True)
-            self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Test Data')
-            self.setTestData(self._testStep.TestData)
+            self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Input Values')
+            self.setInputValues(self._testStep.InputValues)
         elif self._testStep.GetStepType() == 'V':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
             self.m_sizerEnquiryType.ShowItems(False)
             self.m_sizerValidationHolder.ShowItems(False)
             self.m_sizerHandleErrors.ShowItems(True)
-            self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Test Data')
-            self.setTestData(self._testStep.TestData)
+            self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Input Values')
+            self.setInputValues(self._testStep.InputValues)
         elif self._testStep.GetStepType() == 'A':
             self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(False)
@@ -1033,8 +1033,8 @@ class T24TestStepPanel (T24TestStepPanelBase):
         for userGroup in TipServerResources.getUserGroups():
             self.m_choiceLoginUsingUserOfGroup.Append(userGroup)
 
-    def setTestData(self, testData):
-        self.m_editTestData.setTestData(testData)
+    def setInputValues(self, inputValues):
+        self.m_editTestData.setInputValues(inputValues)
 
     def setEnquiryConstraints(self, enquiryConstraints):
         self.m_editTestData.setEnquiryConstraints(enquiryConstraints)
