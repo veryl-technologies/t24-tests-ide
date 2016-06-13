@@ -122,7 +122,7 @@ class RowTokenizer(object):
                 hasFieldName = True
             else:   # we already have field name and operator, now handle the right-side
                 if not hasFormulaStarted and not hasVariableStarted and not hasConstantStarted:
-                    if unicode(value).startswith("#"):
+                    if unicode(value).startswith("?"):
                         hasFormulaStarted = True
                         yield index, FORMULA, unicode(value)
                     elif unicode(value).startswith("$"):  # TODO maybe also @%
