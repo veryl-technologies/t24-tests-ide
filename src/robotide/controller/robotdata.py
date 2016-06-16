@@ -19,8 +19,10 @@ from robot.parsing.model import TestCaseFile, TestDataDirectory
 
 def NewTestCaseFile(path):
     datafile = TestCaseFile(source=path)
-    datafile.setting_table.add_library('T24WebDriver.py')  # TODO support relative imports from subfolders
+    datafile.setting_table.add_library('T24WebDriver.py')  # Rely that we have it setup in PYTHONPATH
     datafile.setting_table.add_library('Selenium2Library')
+    datafile.setting_table.suite_teardown.name = 'Close Browsers'  # or maybe test_teardown ?
+
     _create_missing_directories(datafile.directory)
     return datafile
 
