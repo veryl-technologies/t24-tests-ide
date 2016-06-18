@@ -435,26 +435,32 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_btnNewBefore.SetToolTipString( u"Create and insert new test step before current one" )
 
         self.m_menuNewTestStepBefore = wx.Menu()
-        self.m_menuItemNewLoginStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&L - Login in T24", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewLoginStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Login -> Login in T24", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewLoginStepBefore )
 
-        self.m_menuItemNewMenuStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&M - Go to a T24 Menu", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewMenuStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Menu -> Navigation via T24 Menu", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewMenuStepBefore )
 
-        self.m_menuItemNewInputStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&I - Input T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewInputStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Input -> Create or Amend T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewInputStepBefore )
 
-        self.m_menuItemNewAuthorizeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&A - Authorize T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewAuthorizeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Authorize -> Authorize T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewAuthorizeStepBefore )
 
-        self.m_menuItemNewSeeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&S - See and Verify T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewSeeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&See -> See and Verify T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewSeeStepBefore )
 
-        self.m_menuItemNewEnquiryStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&E - Run and Verify T24 &Enquiry", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewEnquiryStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Enquiry -> Run and Verify T24 &Enquiry", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewEnquiryStepBefore )
 
-        self.m_menuItemNewValidateStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&V - Validate T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewValidateStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Validate -> Validate T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewValidateStepBefore )
+
+        self.m_menuItemNewManualStepBefore = wx.MenuItem(self.m_menuNewTestStepBefore, wx.ID_ANY, u"Manual Step -> Manually Execute a Step", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_menuNewTestStepBefore.AppendItem(self.m_menuItemNewManualStepBefore)
+
+        self.m_menuItemNewManualPauseBefore = wx.MenuItem(self.m_menuNewTestStepBefore, wx.ID_ANY, u"Manual Pause -> Pause Execution and Manually Resume It", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_menuNewTestStepBefore.AppendItem(self.m_menuItemNewManualPauseBefore)
 
         self.m_btnNewBefore.Bind( wx.EVT_RIGHT_DOWN, self.m_btnNewBeforeOnContextMenu )
 
@@ -496,19 +502,18 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.lblTestStepIndex = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"4", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE )
         self.lblTestStepIndex.Wrap( -1 )
-        self.lblTestStepIndex.SetFont( wx.Font( 12, 74, 93, 92, False, "Arial" ) )
-        self.lblTestStepIndex.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHT ) )
+        self.lblTestStepIndex.SetFont( wx.Font( 9, 74, 93, 92, False, "Arial" ) )
 
         bSizer91.Add( self.lblTestStepIndex, 0, wx.ALL, 8 )
 
-        m_choiceTestStepActionChoices = [ u"Login", u"M", u"E", u"I", u"A", u"S", u"V" ]
-        self.m_choiceTestStepAction = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 60,-1 ), m_choiceTestStepActionChoices, 0 )
-        self.m_choiceTestStepAction.SetSelection( 0 )
-        self.m_choiceTestStepAction.SetFont( wx.Font( 9, 74, 90, 92, False, "Arial Black" ) )
+        self.m_staticTestStepActionType = wx.StaticText(self.m_panelTestStepContents, wx.ID_ANY, u"Action", wx.Point(-1, -1), wx.DefaultSize, wx.ALIGN_CENTRE)
+        self.m_staticTestStepActionType.Wrap(-1)
+        self.m_staticTestStepActionType.SetFont(wx.Font(10, 74, 90, 92, False, "Arial Black"))
+        self.m_staticTestStepActionType.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT))
 
-        bSizer91.Add( self.m_choiceTestStepAction, 0, wx.ALL, 5 )
+        bSizer91.Add( self.m_staticTestStepActionType, 0, wx.ALL, 5 )
 
-        self.m_lblLoginUsingUserOfGroup = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"using user of group", wx.Point( -1,-1 ), wx.Size( 125,-1 ), wx.ALIGN_CENTRE )
+        self.m_lblLoginUsingUserOfGroup = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"as", wx.Point( -1,-1 ), wx.Size( 20,-1 ), wx.ALIGN_CENTRE )
         self.m_lblLoginUsingUserOfGroup.Wrap( -1 )
         self.m_lblLoginUsingUserOfGroup.SetFont( wx.Font( 10, 74, 93, 92, False, "Arial" ) )
         self.m_lblLoginUsingUserOfGroup.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_BTNTEXT ) )
@@ -664,9 +669,10 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.Bind( wx.EVT_MENU, self.onInsertSeeStep, id = self.m_menuItemNewSeeStepBefore.GetId() )
         self.Bind( wx.EVT_MENU, self.onInsertEnquiryStep, id = self.m_menuItemNewEnquiryStepBefore.GetId() )
         self.Bind( wx.EVT_MENU, self.onInsertValidateStep, id = self.m_menuItemNewValidateStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertManualStep, id = self.m_menuItemNewManualStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertManualPause, id = self.m_menuItemNewManualPauseBefore.GetId() )
         self.m_btnUp.Bind( wx.EVT_BUTTON, self.onBtnMoveUp )
         self.m_btnDown.Bind( wx.EVT_BUTTON, self.onBtnMoveDown )
-        self.m_choiceTestStepAction.Bind( wx.EVT_CHOICE, self.onActionChanged )
         self.m_choiceLoginUsingUserOfGroup.Bind( wx.EVT_CHOICE, self.onLoginUsingUserOfGroupChanged )
         self.m_txtTestStepMainParameter.Bind( wx.EVT_TEXT, self.onTransactionChanged )
         self.m_txtTestStepDescription.Bind(wx.EVT_TEXT, self.onDescriptionChanged)
@@ -711,13 +717,16 @@ class T24TestStepPanelBase ( wx.Panel ):
     def onInsertValidateStep(self, event):
         event.Skip()
 
+    def onInsertManualStep(self, event):
+        event.Skip()
+
+    def onInsertManualPause(self, event):
+        event.Skip()
+
     def onBtnMoveUp(self, event):
         event.Skip()
 
     def onBtnMoveDown(self, event):
-        event.Skip()
-
-    def onActionChanged(self, event):
         event.Skip()
 
     def onLoginUsingUserOfGroupChanged(self, event):
@@ -796,27 +805,6 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def setIndex(self, idx):
         self.lblTestStepIndex.SetLabel('{}'.format(idx))
 
-    def onActionChanged(self, event):
-        if self._testStep and self._testStepsContainer:
-            oldAction = self._testStep.GetStepType()
-            self.m_choiceTestStepAction.SetSelection(self.m_choiceTestStepAction.FindString(oldAction))
-
-            # newAction = self.m_choiceTestStepAction.GetStringSelection()
-            # oldSubSteps = self._testStep.subSteps()
-            #
-            # self._testStep.SetStepType(newAction)
-            #
-            # if (newAction == 'M' and oldAction != 'M') or (newAction != 'M' and oldAction == 'M'):
-            #     # incompatible values for the transaction type / app version
-            #     self._testStep.AppVersion = ''
-            #     self.m_txtTestStepMainParameter.SetValue('')
-            #
-            # self._testStep.applyChanges()
-            # self.updateUI()
-            # self.Layout()
-            #
-            # self._testStepsContainer.fireOnTestStepChangeEvent(self._testStep, oldSubSteps)
-
     def onTransactionChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.AppVersion = self.m_txtTestStepMainParameter.GetValue()
@@ -844,7 +832,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
     def onEditTestDataChanged(self, event):
         if self._testStep and self._testStepsContainer:
-            if self.m_choiceTestStepAction.GetStringSelection() == 'E':
+            if self.m_staticTestStepActionType.Label == 'Enquiry':
                 self._testStep.EnquiryConstraints = self.getEnqConstraintsFromUI()
             else:
                 self._testStep.InputValues = self.getTestDataFromUI()
@@ -899,7 +887,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
         if self._testStep is None:
             return
 
-        self.m_choiceTestStepAction.SetSelection(self.m_choiceTestStepAction.FindString(self._testStep.GetStepType()))
+        self.m_staticTestStepActionType.SetLabel(self._testStep.GetStepType())
 
         if self._testStep.GetStepType() == 'Login':
             self.setLoginUsingUserOfGroupChoices()
@@ -909,8 +897,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_txtTestStepDescription.SetValue(self._testStep.Description)
             self.refreshLblDescription()
 
-        if self._testStep.GetStepType() == 'M': # Menu
-            self.m_txtTestStepMainParameter.SetToolTipString(u"Use '>' to separate menu sub items. \nExample: 'User Menu > Customer > Individual Customer' \nNote that starting items can be omitted. For example: 'Customer > Individual Customer' or 'Individual Customer' will both navigate to the same target")
+        self.m_txtTestStepMainParameter.SetToolTipString(self._tooltip_main_parameter(self._testStep.GetStepType()))
 
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
 
@@ -928,6 +915,23 @@ class T24TestStepPanel (T24TestStepPanelBase):
             else:
                 self.m_choiceEnquiryStepType.SetStringSelection(u"Action")
                 self.m_txtEnquiryActionCommand.SetValue(self._testStep.EnquiryAction)
+
+    def _tooltip_main_parameter(self, stepType):
+        if stepType == 'Menu':
+            return (u"Use '>' to separate menu sub-items. " +
+                     u"Example: 'User Menu > Customer > Individual Customer' \n" +
+                     u"Note that leading menu sub-items can be omitted. " +
+                     u"For example: 'Customer > Individual Customer' or 'Individual Customer' " +
+                     u"will both navigate to the same target")
+        elif stepType == 'Enquiry':
+            return u"T24 enquiry name"
+        elif stepType == 'Input':
+            return u"T24 application (and optionally a version)"
+        elif stepType == 'Authorize':
+            return u"T24 application name"
+        elif stepType == 'See':
+            return u"T24 application name (and optionally a version)"
+        return ''
 
     def updateUI(self):
         self.m_lblLoginUsingUserOfGroup.Hide()
@@ -951,10 +955,10 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_lblDescription.Hide()
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
-        elif self._testStep.GetStepType() == 'M':
+        elif self._testStep.GetStepType() == 'Menu':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
-        elif self._testStep.GetStepType() == 'I':
+        elif self._testStep.GetStepType() == 'Input':
             self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(True)
             self.m_sizerEnquiryType.ShowItems(False)
@@ -962,7 +966,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerHandleErrors.ShowItems(True)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Input Values')
             self.setInputValues(self._testStep.InputValues)
-        elif self._testStep.GetStepType() == 'V':
+        elif self._testStep.GetStepType() == 'Validate':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
             self.m_sizerEnquiryType.ShowItems(False)
@@ -970,15 +974,15 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerHandleErrors.ShowItems(True)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Input Values')
             self.setInputValues(self._testStep.InputValues)
-        elif self._testStep.GetStepType() == 'A':
+        elif self._testStep.GetStepType() == 'Authorize':
             self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(False)
-        elif self._testStep.GetStepType() == 'S':
+        elif self._testStep.GetStepType() == 'See':
             self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(False)
             self.m_sizerValidationHolder.ShowItems(True)
             self.setValidationRules(self._testStep.ValidationRules)
-        elif self._testStep.GetStepType() == 'E':
+        elif self._testStep.GetStepType() == 'Enquiry':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(True)
             self.m_sizerEnquiryType.ShowItems(True)
@@ -1086,22 +1090,28 @@ class T24TestStepPanel (T24TestStepPanelBase):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Login')
 
     def onInsertMenuStep(self, event):
-        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'M')
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Menu')
 
     def onInsertInputStep(self, event):
-        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'I')
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Input')
 
     def onInsertAuthorizeStep(self, event):
-        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'A')
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Authorize')
 
     def onInsertSeeStep(self, event):
-        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'S')
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'See')
 
     def onInsertEnquiryStep(self, event):
-        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'E')
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Enquiry')
 
     def onInsertValidateStep(self, event):
-        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'V')
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Validate')
+
+    def onInsertManualStep(self, event):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, T24TestStep.keyword_Manual_Step)
+
+    def onInsertManualPause(self, event):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, T24TestStep.keyword_Manual_Pause)
 
     def onBtnMoveUp(self, event):
         self._testStepsContainer.fireOnTestStepMoveUpEvent(self._testStep)

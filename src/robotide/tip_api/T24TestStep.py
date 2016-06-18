@@ -15,13 +15,15 @@ class T24TestStep(object):
     keyword_S = 'Check T24 Record'
     keyword_E = 'Execute T24 Enquiry'
     keyword_V = 'Validate T24 Record'
+    keyword_Manual_Step = 'Manual Step'
+    keyword_Manual_Pause = 'Pause Step'
 
     # members
     _stepDetails = None
 
     # properties
     _Action = ''   # the step type
-    AppVersion = ''   # the T24 application and version
+    AppVersion = ''   # the main command (usually T24 application and version)
     Description = ''    # the description of the test step
     TransactionID = ''   # the T24 record ID
 
@@ -35,6 +37,8 @@ class T24TestStep(object):
     HowToHandleOverrides = None
 
     EnquiryAction = None
+
+    ManualActionPrompt = ''
 
     CanDisplayTestStepInDesigner = False
 
@@ -67,33 +71,39 @@ class T24TestStep(object):
             self._Action = 'Login'
             self.setLoginArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_M:
-            self._Action = 'M'
+            self._Action = 'Menu'
             self.setMenuArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_I:
-            self._Action = 'I'
+            self._Action = 'Input'
             self.setCreateOrAmendOrValidateArgs(stepDetails.args, stepPreActions)
             if self._testDataPreAction is None:
                 self.SetStepType(self._Action)  # this will create new _testDataPreAction
         elif stepDetails.keyword == self.keyword_A:
-            self._Action = 'A'
+            self._Action = 'Authorize'
             self.setAuthorizeArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_S:
-            self._Action = 'S'
+            self._Action = 'See'
             if self._validationRulesPreAction is None:
                 self.SetStepType(self._Action)
             self.setCheckRecordArgs(stepDetails.args, stepPreActions)
         elif stepDetails.keyword == self.keyword_E:
-            self._Action = 'E'
+            self._Action = 'Enquiry'
             self.setEnquiryArgs(stepDetails.args, stepPreActions)
             if self._enquiryConstraintsPreAction is None:
                 self.SetStepType(self._Action)  # this will create new _enquiryConstraintsPreAction
             if self._validationRulesPreAction is None:
                 self.SetStepType(self._Action)
         elif stepDetails.keyword == self.keyword_V:
-            self._Action = 'V'
+            self._Action = 'Validate'
             self.setCreateOrAmendOrValidateArgs(stepDetails.args, stepPreActions)
             if self._testDataPreAction is None:
                 self.SetStepType(self._Action)  # this will create new _testDataPreAction
+        elif stepDetails.keyword == self.keyword_Manual_Step:
+            self._Action = self.keyword_Manual_Step
+            self.setManualAction(stepDetails.args)
+        elif stepDetails.keyword == self.keyword_Manual_Pause:
+            self._Action = self.keyword_Manual_Pause
+            self.setManualAction(stepDetails.args)
         else:
             # Other types goes here
             return False
@@ -106,7 +116,7 @@ class T24TestStep(object):
     def SetStepType(self, action):
         self._Action = action
 
-        if self._Action == 'I' or self._Action == 'V':
+        if self._Action == 'Input' or self._Action == 'Validate':
             self._enquiryConstraintsPreAction = None
             self._validationRulesPreAction = None
             if self._testDataPreAction is None:
@@ -117,7 +127,7 @@ class T24TestStep(object):
                 self._testDataPreAction.args = []
                 self._setArg(2, testDataVarName.replace("@", "$"))
 
-        elif self._Action == 'E':
+        elif self._Action == 'Enquiry':
             self._testDataPreAction = None
             if self._enquiryConstraintsPreAction is None:
                 enqVarName = '@{enquiryConstraints}'
@@ -135,7 +145,7 @@ class T24TestStep(object):
                 self._validationRulesPreAction.args = []
                 self._setArg(3, varName.replace("@", "$"))
 
-        elif self._Action == 'S':
+        elif self._Action == 'See':
             self._testDataPreAction = None
             self._enquiryConstraintsPreAction = None
 
@@ -169,6 +179,17 @@ class T24TestStep(object):
 
         if args.__len__() >= 1:
             self.AppVersion = args[0]
+
+    def setManualAction(self, args):
+        # Expected Format:
+        # Manual Step {text}
+        # or
+        # Manual Pause {text}
+        if not args:
+            return
+
+        if args.__len__() >= 1:
+            self.ManualActionPrompt = args[0]
 
     def setCreateOrAmendOrValidateArgs(self, args, stepPreActions):
         # Expected Format
@@ -280,11 +301,11 @@ class T24TestStep(object):
         return ls
 
     def _getPreActions(self):
-        if self._Action == 'I' or self._Action == 'V':
+        if self._Action == 'Input' or self._Action == 'Validate':
             return [self._testDataPreAction]
-        elif self._Action == 'E':
+        elif self._Action == 'Enquiry':
             return [self._enquiryConstraintsPreAction, self._validationRulesPreAction]
-        elif self._Action == 'S':
+        elif self._Action == 'See':
             return [self._validationRulesPreAction]
 
         return []
@@ -302,20 +323,24 @@ class T24TestStep(object):
     def getKeywordFromAction(action):
         if action == 'Login':
             return 'T24 Login'
-        elif action == 'M':
+        elif action == 'Menu':
             return 'Execute T24 Menu Command'
-        elif action == 'I':
+        elif action == 'Input':
             return 'Create Or Amend T24 Record'
-        elif action == 'A':
+        elif action == 'Authorize':
             return 'Authorize T24 Record'
-        elif action == 'S':
+        elif action == 'See':
             return 'Check T24 Record'
-        elif action == 'E':
+        elif action == 'Enquiry':
             return 'Execute T24 Enquiry'
-        elif action == 'V':
+        elif action == 'Validate':
             return 'Validate T24 Record'
+        elif action == T24TestStep.keyword_Manual_Step:
+            return T24TestStep.keyword_Manual_Step
+        elif action == T24TestStep.keyword_Manual_Pause:
+            return T24TestStep.keyword_Manual_Pause
         else:  # todo - we have to have generic test step as a new test step type
-            return 'T24 Login'
+            return 'Other'
 
     def _getNameValueList(self, list):
         if list is None:
@@ -353,12 +378,12 @@ class T24TestStep(object):
         return self._getEnqConstraintList(list)
 
     def applyInputValuesOrEnquiryConstraintsChanges(self):
-        if self._Action == 'I' or self._Action == 'V':
+        if self._Action == 'Input' or self._Action == 'Validate':
             self._testDataPreAction.args = []
             for td in self.InputValues:
                 self._testDataPreAction.args.append(u'{}={}'.format(td[0], td[1]))
 
-        elif self._Action == 'E':
+        elif self._Action == 'Enquiry':
             self._enquiryConstraintsPreAction.args = []
             for enc in self.EnquiryConstraints:
                 if enc[1] or enc[1].strip():
@@ -367,7 +392,7 @@ class T24TestStep(object):
                     self._enquiryConstraintsPreAction.args.append(u'{}'.format(enc[0]))
 
     def applyValidationRulesChanges(self):
-        if self._Action == 'E' or self._Action == 'S':
+        if self._Action == 'Enquiry' or self._Action == 'See':
             self._validationRulesPreAction.args = []
             for vr in self.ValidationRules:
                 if vr[1] and vr[1].strip():
@@ -395,24 +420,24 @@ class T24TestStep(object):
 
         if self._Action == 'Login':
             self._stepDetails.keyword = self.keyword_L
-        elif self._Action == 'M':
+        elif self._Action == 'Menu':
             self._stepDetails.keyword = self.keyword_M
-        elif self._Action == 'I':
+        elif self._Action == 'Input':
             self._stepDetails.keyword = self.keyword_I
             self._setArg(1, self.TransactionID)
             self._setArg(3, self.HowToHandleOverrides)
             self._setArg(4, self._getHowToHandleErrors())
-        elif self._Action == 'A':
+        elif self._Action == 'Authorize':
             self._stepDetails.keyword = self.keyword_A
             self._setArg(1, self.TransactionID)
-        elif self._Action == 'S':
+        elif self._Action == 'See':
             self._stepDetails.keyword = self.keyword_S
             self._setArg(1, self.TransactionID)
-        elif self._Action == 'V':
+        elif self._Action == 'Validate':
             self._stepDetails.keyword = self.keyword_V
             self._setArg(3, self.HowToHandleOverrides)
             self._setArg(4, self._getHowToHandleErrors())
-        elif self._Action == 'E':
+        elif self._Action == 'Enquiry':
             self._stepDetails.keyword = self.keyword_E
             self._setArg(2, self.EnquiryAction)
 
