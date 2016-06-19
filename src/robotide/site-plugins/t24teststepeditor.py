@@ -568,7 +568,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerTransactionID = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_lblTransID = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"@ID", wx.DefaultPosition, wx.Size( 80, -1 ), wx.ALIGN_RIGHT )
+        self.m_lblTransID = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"@ID", wx.DefaultPosition, wx.Size( 44, -1 ), wx.ALIGN_RIGHT )
         self.m_lblTransID.Wrap( -1 )
         self.m_lblTransID.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), 70, 90, 92, False, wx.EmptyString ) )
 
