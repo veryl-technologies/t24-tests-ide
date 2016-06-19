@@ -202,7 +202,8 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
              ':EW:=',
          ]
 
-        self.AutoCompShow(0, " ".join(operators))
+        self.AutoCompSetSeparator(ord(','))
+        self.AutoCompShow(0, " ,".join(operators))
 
     def _register_shortcuts(self):
         accels = []
