@@ -32,6 +32,8 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
         self.SetLexer(stc.STC_LEX_CONTAINER)
         self.Bind(stc.EVT_STC_STYLENEEDED, self.OnStyle)
         self.Bind(stc.EVT_STC_CHARADDED, self.OnCharAdded)  # we can use also stc.EVT_STC_MODIFIED
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+
         self.stylizer = TypStylizer(self, font)
 
         # We don't need all wx.stc.EVT_STC_CHANGE events -> just those notify for actual changes in the text
@@ -152,6 +154,15 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
 
     def append_text(self, text):
         self.AppendText(text)
+
+    def OnKeyDown(self, event):
+        if event.GetKeyCode() == wx.WXK_TAB:
+            flag = wx.NavigationKeyEvent.IsForward
+            if event.ShiftDown():
+                flag = 0
+            self.Navigate(flag)
+        else:
+            event.Skip()
 
     def OnStyle(self, event):
         self.stylizer.stylize()
