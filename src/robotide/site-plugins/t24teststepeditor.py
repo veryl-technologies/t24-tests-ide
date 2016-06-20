@@ -447,7 +447,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_menuItemNewAuthorizeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Authorize -> Authorize T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewAuthorizeStepBefore )
 
-        self.m_menuItemNewSeeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&See -> See and Verify T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuItemNewSeeStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&See -> Retrieve and Verify T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewSeeStepBefore )
 
         self.m_menuItemNewEnquiryStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Enquiry -> Run and Verify T24 &Enquiry", wx.EmptyString, wx.ITEM_NORMAL )
@@ -456,10 +456,10 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_menuItemNewValidateStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Validate -> Validate T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewValidateStepBefore )
 
-        self.m_menuItemNewManualStepBefore = wx.MenuItem(self.m_menuNewTestStepBefore, wx.ID_ANY, u"Manual Step -> Manually Execute a Step", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_menuItemNewManualStepBefore = wx.MenuItem(self.m_menuNewTestStepBefore, wx.ID_ANY, u"Man&ual Step -> Manually Execute a Step", wx.EmptyString, wx.ITEM_NORMAL)
         self.m_menuNewTestStepBefore.AppendItem(self.m_menuItemNewManualStepBefore)
 
-        self.m_menuItemNewManualPauseBefore = wx.MenuItem(self.m_menuNewTestStepBefore, wx.ID_ANY, u"Manual Pause -> Pause Execution and Manually Resume It", wx.EmptyString, wx.ITEM_NORMAL)
+        self.m_menuItemNewManualPauseBefore = wx.MenuItem(self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Pause Step -> Pause Execution and Manually Resume", wx.EmptyString, wx.ITEM_NORMAL)
         self.m_menuNewTestStepBefore.AppendItem(self.m_menuItemNewManualPauseBefore)
 
         self.m_btnNewBefore.Bind( wx.EVT_RIGHT_DOWN, self.m_btnNewBeforeOnContextMenu )
@@ -525,7 +525,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_choiceLoginUsingUserOfGroup.SetSelection( 0 )
         bSizer91.Add( self.m_choiceLoginUsingUserOfGroup, 0, wx.ALL, 5 )
 
-        self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ), 0 )
+        self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ))
         bSizer91.Add( self.m_txtTestStepMainParameter, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
         self.m_lblDescription = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"[click to add description]", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE)
@@ -674,7 +674,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_btnUp.Bind( wx.EVT_BUTTON, self.onBtnMoveUp )
         self.m_btnDown.Bind( wx.EVT_BUTTON, self.onBtnMoveDown )
         self.m_choiceLoginUsingUserOfGroup.Bind( wx.EVT_CHOICE, self.onLoginUsingUserOfGroupChanged )
-        self.m_txtTestStepMainParameter.Bind( wx.EVT_TEXT, self.onTransactionChanged )
+        self.m_txtTestStepMainParameter.Bind( wx.EVT_TEXT, self.onMainParameterChanged )
         self.m_txtTestStepDescription.Bind(wx.EVT_TEXT, self.onDescriptionChanged)
         self.m_btnDelete.Bind( wx.EVT_BUTTON, self.onBtnDelete )
         self.m_txtTransactionID.Bind( wx.EVT_TEXT, self.onTransactionIDChanged )
@@ -732,7 +732,7 @@ class T24TestStepPanelBase ( wx.Panel ):
     def onLoginUsingUserOfGroupChanged(self, event):
         event.Skip()
 
-    def onTransactionChanged(self, event):
+    def onMainParameterChanged(self, event):
         event.Skip()
 
     def onBtnDelete(self, event):
@@ -805,7 +805,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
     def setIndex(self, idx):
         self.lblTestStepIndex.SetLabel('{}'.format(idx))
 
-    def onTransactionChanged(self, event):
+    def onMainParameterChanged(self, event):
         if self._testStep and self._testStepsContainer:
             self._testStep.AppVersion = self.m_txtTestStepMainParameter.GetValue()
             self._testStep.applyChanges()
@@ -897,6 +897,11 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_txtTestStepDescription.SetValue(self._testStep.Description)
             self.refreshLblDescription()
 
+        if self._testStep.GetStepType() in [T24TestStep.keyword_Manual_Pause, T24TestStep.keyword_Manual_Step]:
+            self.m_txtTestStepMainParameter.WindowStyleFlag |= wx.TE_RICH
+            self.m_txtTestStepMainParameter.WindowStyleFlag |= wx.TE_MULTILINE
+            self.m_txtTestStepMainParameter.WindowStyleFlag |= wx.TE_WORDWRAP
+
         self.m_txtTestStepMainParameter.SetToolTipString(self._tooltip_main_parameter(self._testStep.GetStepType()))
 
         self.m_txtTransactionID.SetValue(self._testStep.TransactionID)
@@ -931,6 +936,10 @@ class T24TestStepPanel (T24TestStepPanelBase):
             return u"T24 application name"
         elif stepType == 'See':
             return u"T24 application name (and optionally a version)"
+        elif stepType == T24TestStep.keyword_Manual_Pause:
+            return u"Text to display when executing the test step"
+        elif stepType == T24TestStep.keyword_Manual_Step:
+            return u"Text to display when executing the test step"
         return ''
 
     def updateUI(self):

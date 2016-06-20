@@ -23,7 +23,7 @@ class T24TestStep(object):
 
     # properties
     _Action = ''   # the step type
-    AppVersion = ''   # the main command (usually T24 application and version)
+    AppVersion = ''   # the main argument for the command (most commonly T24 application and version)
     Description = ''    # the description of the test step
     TransactionID = ''   # the T24 record ID
 
@@ -37,8 +37,6 @@ class T24TestStep(object):
     HowToHandleOverrides = None
 
     EnquiryAction = None
-
-    ManualActionPrompt = ''
 
     CanDisplayTestStepInDesigner = False
 
@@ -187,9 +185,8 @@ class T24TestStep(object):
         # Manual Pause {text}
         if not args:
             return
-
         if args.__len__() >= 1:
-            self.ManualActionPrompt = args[0]
+            self.AppVersion = args[0]
 
     def setCreateOrAmendOrValidateArgs(self, args, stepPreActions):
         # Expected Format
@@ -412,10 +409,9 @@ class T24TestStep(object):
 
     def applyChanges(self):
         self._setArg(0, self.AppVersion)
-        # self._stepDetails.comment._comment = []
+
         if self.Description and len(self.Description):
-            desc = self.Description.strip()
-            desc = "# " + self.Description
+            desc = "# " + self.Description.strip()
             self._stepDetails.comment = Comment(desc)
 
         if self._Action == 'Login':
