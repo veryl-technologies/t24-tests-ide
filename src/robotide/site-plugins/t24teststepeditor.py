@@ -525,7 +525,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_choiceLoginUsingUserOfGroup.SetSelection( 0 )
         bSizer91.Add( self.m_choiceLoginUsingUserOfGroup, 0, wx.ALL, 5 )
 
-        self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ))
+        self.m_txtTestStepMainParameter = wx.TextCtrl( self.m_panelTestStepContents, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ), style=wx.TE_MULTILINE)
         bSizer91.Add( self.m_txtTestStepMainParameter, 0, wx.ALIGN_LEFT|wx.ALIGN_RIGHT|wx.ALL, 5 )
 
         self.m_lblDescription = wx.StaticText( self.m_panelTestStepContents, wx.ID_ANY, u"[click to add description]", wx.Point( -1,-1 ), wx.DefaultSize, wx.ALIGN_CENTRE)
@@ -898,9 +898,10 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.refreshLblDescription()
 
         if self._testStep.GetStepType() in [T24TestStep.keyword_Manual_Pause, T24TestStep.keyword_Manual_Step]:
-            self.m_txtTestStepMainParameter.WindowStyleFlag |= wx.TE_RICH
-            self.m_txtTestStepMainParameter.WindowStyleFlag |= wx.TE_MULTILINE
+            # self.m_txtTestStepMainParameter.WindowStyleFlag |= wx.TE_RICH
             self.m_txtTestStepMainParameter.WindowStyleFlag |= wx.TE_WORDWRAP
+        else:
+            self.m_txtTestStepMainParameter.WindowStyleFlag -= wx.TE_MULTILINE
 
         self.m_txtTestStepMainParameter.SetToolTipString(self._tooltip_main_parameter(self._testStep.GetStepType()))
 
@@ -937,9 +938,9 @@ class T24TestStepPanel (T24TestStepPanelBase):
         elif stepType == 'See':
             return u"T24 application name (and optionally a version)"
         elif stepType == T24TestStep.keyword_Manual_Pause:
-            return u"Text to display when executing the test step"
+            return u"Message to display when showing a pause instruction"
         elif stepType == T24TestStep.keyword_Manual_Step:
-            return u"Text to display when executing the test step"
+            return u"Message to display when prompting for manual test step execution"
         return ''
 
     def updateUI(self):
