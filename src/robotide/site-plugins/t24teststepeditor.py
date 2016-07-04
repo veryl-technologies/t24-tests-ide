@@ -612,7 +612,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         m_choiceHowToHandleOverridesChoices = [ u"Fail", u"Accept All" ]
         self.m_choiceHowToHandleOverrides = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceHowToHandleOverridesChoices, 0 )
-        self.m_choiceHowToHandleOverrides.SetSelection( 0 )
+        self.m_choiceHowToHandleOverrides.SetSelection( 1 )
         self.m_sizerHandleOverrides.Add( self.m_choiceHowToHandleOverrides, 0, wx.ALIGN_RIGHT, 5 )
 
 
