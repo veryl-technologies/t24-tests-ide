@@ -14,6 +14,8 @@
 from robotide.context.platform import IS_MAC
 
 import wx
+import subprocess
+from time import sleep
 
 from robotide.action import ActionInfoCollection, ActionFactory, SeparatorInfo
 from robotide.context import ABOUT_RIDE, SHORTCUT_KEYS
@@ -39,7 +41,7 @@ from .progress import LoadProgressObserver
 _menudata = """
 [Setup]
 !&Open Workspace | Open file containing tests | Ctrlcmd-O | CUSTOM_WORKSPACE_SETUP
-!&Repository | Open Repository with tests | Shift-Ctrlcmd-O | CUSTOM_REPOSITORY_PUSH
+!&Push Changes | Opens an external client to push tests changes to a central repository| Shift-Ctrlcmd-P | CUSTOM_REPOSITORY_PUSH
 ---
 &Save | Save selected datafile | Ctrlcmd-S | CUSTOM_FILE_SAVE
 !Save &All | Save all changes | Ctrlcmd-Shift-S | CUSTOM_FILE_SAVE_ALL
@@ -204,7 +206,6 @@ class RideFrame(wx.Frame, RideEventHandler):
             return ret == wx.YES
         return True
 
-
     def _get_path(self):
         wildcard = ('All files|*.*|Robot data (*.html)|*.*htm*|'
                     'Robot data (*.tsv)|*.tsv|Robot data (*txt)|*.txt')
@@ -226,25 +227,11 @@ class RideFrame(wx.Frame, RideEventHandler):
     def refresh_datafile(self, item, event):
         self.tree.refresh_datafile(item, event)
 
-    def OnRepository(self, event):
-        dialog = RepositorySettingsDialog(self)
-        dialog.ShowModal()
-        dialog.Destroy()
-
-        #HB todo: here goes the code for repository
-        # if self.check_unsaved_modifications():
-        #     path = wx.DirSelector(message='Choose a directory containing Robot files',
-        #                           defaultPath=self._controller.default_dir)
-        #     if path:
-        #         self.open_suite(path)
-
-
-    #def OnOpenDirectory(self, event):
-    #    if self.check_unsaved_modifications():
-    #        path = wx.DirSelector(message='Choose a directory containing Robot files',
-    #                              defaultPath=self._controller.default_dir)
-    #        if path:
-    #            self.open_suite(path)
+    def OnPushChanges(self, event):
+        dummy = wx.BusyCursor()  # Shorter than wx.BeginBusyCursor() and wx.EndBusyCursor(), autohidden when variable goes out of scope
+        repo = self._controller._settings.get('default directory', None)
+        subprocess.Popen('push.bat "{0}"'.format(repo), stdout=subprocess.PIPE, shell=True)
+        sleep(3)  # we can't really know how much time it would take to start the editor, so just indicate work
 
     def OnSave(self, event):
         self.save()
