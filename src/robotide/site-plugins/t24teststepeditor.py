@@ -456,6 +456,9 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.m_menuItemNewValidateStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Validate -> Validate T24 Record", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewValidateStepBefore )
 
+        self.m_menuItemNewTabStepBefore = wx.MenuItem( self.m_menuNewTestStepBefore, wx.ID_ANY, u"&Tab -> Navigation via T24 Tab", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menuNewTestStepBefore.AppendItem( self.m_menuItemNewTabStepBefore )
+
         self.m_menuItemNewManualStepBefore = wx.MenuItem(self.m_menuNewTestStepBefore, wx.ID_ANY, u"Man&ual Step -> Manually Execute a Step", wx.EmptyString, wx.ITEM_NORMAL)
         self.m_menuNewTestStepBefore.AppendItem(self.m_menuItemNewManualStepBefore)
 
@@ -669,6 +672,7 @@ class T24TestStepPanelBase ( wx.Panel ):
         self.Bind( wx.EVT_MENU, self.onInsertSeeStep, id = self.m_menuItemNewSeeStepBefore.GetId() )
         self.Bind( wx.EVT_MENU, self.onInsertEnquiryStep, id = self.m_menuItemNewEnquiryStepBefore.GetId() )
         self.Bind( wx.EVT_MENU, self.onInsertValidateStep, id = self.m_menuItemNewValidateStepBefore.GetId() )
+        self.Bind( wx.EVT_MENU, self.onInsertTabStep, id = self.m_menuItemNewTabStepBefore.GetId() )
         self.Bind( wx.EVT_MENU, self.onInsertManualStep, id = self.m_menuItemNewManualStepBefore.GetId() )
         self.Bind( wx.EVT_MENU, self.onInsertManualPause, id = self.m_menuItemNewManualPauseBefore.GetId() )
         self.m_btnUp.Bind( wx.EVT_BUTTON, self.onBtnMoveUp )
@@ -715,6 +719,9 @@ class T24TestStepPanelBase ( wx.Panel ):
         event.Skip()
 
     def onInsertValidateStep(self, event):
+        event.Skip()
+
+    def onInsertTabStep(self, event):
         event.Skip()
 
     def onInsertManualStep(self, event):
@@ -929,6 +936,9 @@ class T24TestStepPanel (T24TestStepPanelBase):
                      u"Note that leading menu sub-items can be omitted. " +
                      u"For example: 'Customer > Individual Customer' or 'Individual Customer' " +
                      u"will both navigate to the same target")
+        elif stepType == 'Tab':
+            return (u"Use '>' to separate tab sub-items. " +
+                     u"Example: 'Till Admin > TC Sell Today'")
         elif stepType == 'Enquiry':
             return u"T24 enquiry name"
         elif stepType == 'Input':
@@ -965,7 +975,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_lblDescription.Hide()
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
-        elif self._testStep.GetStepType() == 'Menu':
+        elif self._testStep.GetStepType() == 'Menu' or self._testStep.GetStepType() == 'Tab':
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
         elif self._testStep.GetStepType() == 'Input':
@@ -1116,6 +1126,9 @@ class T24TestStepPanel (T24TestStepPanelBase):
 
     def onInsertValidateStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Validate')
+
+    def onInsertTabStep(self, event):
+        self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, 'Tab')
 
     def onInsertManualStep(self, event):
         self._testStepsContainer.fireOnNewTestStepBeforeEvent(self._testStep, T24TestStep.keyword_Manual_Step)

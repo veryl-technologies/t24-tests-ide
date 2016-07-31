@@ -10,6 +10,7 @@ class T24TestStep(object):
     # consts
     keyword_L = 'T24 Login'
     keyword_M = 'Execute T24 Menu Command'
+    keyword_T = 'Execute T24 Tab Command'
     keyword_I = 'Create Or Amend T24 Record'
     keyword_A = 'Authorize T24 Record'
     keyword_S = 'Check T24 Record'
@@ -70,6 +71,9 @@ class T24TestStep(object):
             self.setLoginArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_M:
             self._Action = 'Menu'
+            self.setMenuArgs(stepDetails.args)
+        elif stepDetails.keyword == self.keyword_T:
+            self._Action = 'Tab'
             self.setMenuArgs(stepDetails.args)
         elif stepDetails.keyword == self.keyword_I:
             self._Action = 'Input'
@@ -322,6 +326,8 @@ class T24TestStep(object):
             return 'T24 Login'
         elif action == 'Menu':
             return 'Execute T24 Menu Command'
+        elif action == 'Tab':
+            return 'Execute T24 Tab Command'
         elif action == 'Input':
             return 'Create Or Amend T24 Record'
         elif action == 'Authorize':
@@ -418,6 +424,8 @@ class T24TestStep(object):
             self._stepDetails.keyword = self.keyword_L
         elif self._Action == 'Menu':
             self._stepDetails.keyword = self.keyword_M
+        elif self._Action == 'Tab':
+            self._stepDetails.keyword = self.keyword_T
         elif self._Action == 'Input':
             self._stepDetails.keyword = self.keyword_I
             self._setArg(1, self.TransactionID)
