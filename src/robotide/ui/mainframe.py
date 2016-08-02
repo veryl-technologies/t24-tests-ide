@@ -42,6 +42,7 @@ _menudata = """
 [Setup]
 !&Open Workspace | Open file containing tests | Ctrlcmd-O | CUSTOM_WORKSPACE_SETUP
 !&Push Changes | Opens an external client to push tests changes to a central repository| Shift-Ctrlcmd-P | CUSTOM_REPOSITORY_PUSH
+!&Pull Changes | Downloads all the latest changes from a central repository| Shift-Ctrlcmd-D | CUSTOM_REPOSITORY_PULL
 ---
 &Save | Save selected datafile | Ctrlcmd-S | CUSTOM_FILE_SAVE
 !Save &All | Save all changes | Ctrlcmd-Shift-S | CUSTOM_FILE_SAVE_ALL
@@ -228,10 +229,16 @@ class RideFrame(wx.Frame, RideEventHandler):
         self.tree.refresh_datafile(item, event)
 
     def OnPushChanges(self, event):
-        dummy = wx.BusyCursor()  # Shorter than wx.BeginBusyCursor() and wx.EndBusyCursor(), autohidden when variable goes out of scope
+        dummy = wx.BusyCursor()  # Shorter than wx.BeginBusyCursor() and wx.EndBusyCursor(), auto-hidden when variable goes out of scope
         repo = self._controller._settings.get('default directory', None)
         subprocess.Popen('push.bat "{0}"'.format(repo), stdout=subprocess.PIPE, shell=True)
         sleep(3)  # we can't really know how much time it would take to start the editor, so just indicate work
+
+    def OnPullChanges(self, event):
+        dummy = wx.BusyCursor()  # Shorter than wx.BeginBusyCursor() and wx.EndBusyCursor(), auto-hidden when variable goes out of scope
+        repo = self._controller._settings.get('default directory', None)
+        p = subprocess.Popen('pull.bat "{0}"'.format(repo), stdout=subprocess.PIPE, shell=True)
+        p.wait()
 
     def OnSave(self, event):
         self.save()

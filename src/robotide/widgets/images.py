@@ -53,10 +53,10 @@ class ImageProvider(object):
         self.FILE_SAVE = self._load_image('tip_32_save.png')
         self.FILE_SAVE_ALL = self._load_image('tip_32_save_all.png')
         self.REPOSITORY_PUSH = self._load_image('tip_32_repository_push.png')
+        self.REPOSITORY_PULL = self._load_image('tip_32_repository_pop.png')
 
         self.GO_BACK = self._load_image('tip_32_back.png')
         self.GO_FORWARD = self._load_image('tip_32_forward.png')
-
 
         self._build_icons()
 
