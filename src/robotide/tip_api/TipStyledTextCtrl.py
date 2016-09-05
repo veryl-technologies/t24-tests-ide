@@ -187,12 +187,19 @@ class TipStyledTextCtrl(stc.StyledTextCtrl):
     def _try_show_autocomplete(self):
         line = self.GetLine(self.GetCurrentLine()).rstrip('\n')  # TODO instead get the text until the caret pos
 
-        # demand a space before showing the autocomplete (just after the first token)
+        # Demand a space before showing the autocomplete immediately after the first token
         if not line.endswith(" "):
             return
 
-        # check if there is a single valid token (which should be a field name or an enquiry row number)
+        # Check if the line currently contains a single valid token
+        # The token should be a field name (possibly prefixed with [AA product]) or an enquiry row number
         line = line.strip()
+        if line.startswith('['):
+            if ']' in line:
+                line = line[line.find(']') + 1:]
+            else:
+                return  # AA prefix is not completed
+
         if not line or ' ' in line:
             return
 
