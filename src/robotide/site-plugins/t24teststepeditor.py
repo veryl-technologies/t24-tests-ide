@@ -987,10 +987,11 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Input Values')
             self.setInputValues(self._testStep.InputValues)
         elif self._testStep.GetStepType() == 'Validate':
-            self.m_sizerTransactionID.ShowItems(False)
+            self.m_sizerTransactionID.ShowItems(True)
             self.m_sizerTestData.ShowItems(True)
             self.m_sizerEnquiryType.ShowItems(False)
             self.m_sizerValidationHolder.ShowItems(False)
+            self.m_sizerHandleOverrides.ShowItems(False)
             self.m_sizerHandleErrors.ShowItems(True)
             self.m_sizerTestDataCtrlHolder.StaticBox.SetLabel('Input Values')
             self.setInputValues(self._testStep.InputValues)
