@@ -623,7 +623,7 @@ class T24TestStepPanelBase ( wx.Panel ):
 
         self.m_sizerHandleErrors = wx.StaticBoxSizer( wx.StaticBox( self.m_panelTestStepContents, wx.ID_ANY, u"How to Handle Errors" ), wx.VERTICAL )
 
-        m_choiceHowToHandleErrorsChoices = [ u"Fail", u"Expect Any Error", u"Expect Error Containing" ]
+        m_choiceHowToHandleErrorsChoices = [ u"Fail", u"Expect Any Error", u"Expect Error for Field" ]
         self.m_choiceHowToHandleErrors = wx.Choice( self.m_panelTestStepContents, wx.ID_ANY, wx.DefaultPosition, wx.Size( 200,-1 ), m_choiceHowToHandleErrorsChoices, 0 )
         self.m_choiceHowToHandleErrors.SetSelection( 0 )
         self.m_sizerHandleErrors.Add( self.m_choiceHowToHandleErrors, 0, wx.ALIGN_RIGHT, 5 )
@@ -1020,7 +1020,7 @@ class T24TestStepPanel (T24TestStepPanelBase):
             self.m_sizerTransactionID.ShowItems(False)
             self.m_sizerTestData.ShowItems(False)
 
-        if self.m_choiceHowToHandleErrors.IsShown() and self.m_choiceHowToHandleErrors.GetStringSelection() == u"Expect Error Containing":
+        if self.m_choiceHowToHandleErrors.IsShown() and self.m_choiceHowToHandleErrors.GetStringSelection() == u"Expect Error for Field":
             self.m_txtExpectErrorContaining.Show(True)
         else:
             self.m_txtExpectErrorContaining.Show(False)

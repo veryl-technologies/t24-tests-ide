@@ -199,7 +199,7 @@ class T24TestStep(object):
         # Validate T24 Record {application,version} {recordFieldValues} {overridesHandling} {errorsHandling}
         #
         #
-        # if {errorsHandling} contains ':' we have 2 parts - contains text for ex: 'Expect Error Containing:Unknown'
+        # if {errorsHandling} contains ':' we have 2 parts - contains text for ex: 'Expect Error for Field:Unknown'
         #
         if not args:
             return

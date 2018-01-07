@@ -7,7 +7,7 @@ Resource          custom.robot
 Enter an Account
     ${mnemonic}=    Get Unique Mnemonic
     @{fields1}=    Create List    NAME.1.1=John    MNEMONIC=${mnemonic}    Short Name=Babchko
-    Create Or Amend T24 Record    SUPER,DUPER    @{testDataFields1}    Fail    Expect Error Containing:Da be da
+    Create Or Amend T24 Record    SUPER,DUPER    @{testDataFields1}    Fail    Expect Error for Field:Da be da
     Authorize T24 Record    CUSTOMER,IND    @{fields1}    Accept All Overrides    ${EMPTY}    ${EMPTY}
     Execute T24 Menu Command    sfsdfsfd
     Check T24 Record Exists    ACCOUNT,FR    \    @{validationRules1}    ${EMPTY}    ${EMPTY}    ${EMPTY}
