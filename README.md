@@ -4,7 +4,7 @@ Veryl T24 Tests Editor is IDE for authoring Temenos T24 Scripts and is built on 
 
 See [screenshots](http://veryl.eu/index.php?option=com_content&view=article&id=124&Itemid=343) of the custom interface for editing T24 Test Cases.
 
-![Editor](http://veryl.eu/images/veryl/01TestTreeStructure.png)
+![Editor](http://veryl.eu/images/veryl/07Verify.png)
 
 The test cases are plain text filed with RF syntax. See examples at https://github.com/veryl-technologies/t24-tests-library 
 
