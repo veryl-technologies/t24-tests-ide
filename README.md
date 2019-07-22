@@ -2,7 +2,7 @@
 
 Veryl T24 Tests Editor is IDE for authoring Temenos T24 Scripts and is built on top of Robot Framework RIDE (see https://github.com/robotframework/RIDE/ ). 
 
-See [screenshots](http://veryl.eu/index.php?option=com_content&view=article&id=124&Itemid=343) of the custom interface for editing T24 Test Cases.
+See [screenshots](https://veryl-technologies.github.io/website/product.htm) of the custom interface for editing T24 Test Cases.
 
 ![Editor](http://veryl.eu/images/veryl/07Verify.png)
 
